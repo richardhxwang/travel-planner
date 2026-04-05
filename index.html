@@ -354,11 +354,17 @@ const App = {
     function deleteTrip(idx) {
       if (trips.value.length <= 1) { toast('至少保留一个计划', 'error'); return; }
       trips.value.splice(idx, 1);
-      if (activeTripIdx.value >= trips.value.length) activeTripIdx.value = trips.value.length - 1;
-      Object.assign(trip, JSON.parse(JSON.stringify(trips.value[activeTripIdx.value])));
-      if (trip.days.length) selDayId.value = trip.days[0].id;
-      else selDayId.value = '';
-      messages.value = [];
+      // Adjust active index: if deleted before current, shift down; if deleted current, clamp
+      if (idx < activeTripIdx.value) {
+        activeTripIdx.value--;
+      } else if (idx === activeTripIdx.value) {
+        if (activeTripIdx.value >= trips.value.length) activeTripIdx.value = trips.value.length - 1;
+        Object.assign(trip, JSON.parse(JSON.stringify(trips.value[activeTripIdx.value])));
+        if (trip.days.length) selDayId.value = trip.days[0].id;
+        else selDayId.value = '';
+        messages.value = [];
+        loadMessages();
+      }
       showTripSwitcher.value = false;
       saveAllTrips();
       toast('已删除计划', 'success');
@@ -479,7 +485,9 @@ const App = {
     onMounted(() => {
       const d = localStorage.getItem('tp_dark') === 'true';
       dark.value = d; applyDark(d);
-      if (!localStorage.getItem('tp_has_password')) screen.value = 'setup';
+      // Check both new and legacy key names for backward compatibility
+      const hasPassword = localStorage.getItem('tp_has_password') || localStorage.getItem('bali_has_password');
+      if (!hasPassword) screen.value = 'setup';
       else screen.value = 'lock';
 
       // Offline detection
@@ -542,10 +550,10 @@ const App = {
       if (!lockPw.value) { lockErr.value = '请输入密码'; return; }
       unlocking.value = true; lockErr.value = '';
       try {
-        const s = b64ToArr(localStorage.getItem('tp_salt') || '');
+        const s = b64ToArr(localStorage.getItem('tp_salt') || localStorage.getItem('bali_salt') || '');
         saltArr.value = s;
         const key = await deriveKey(lockPw.value, s);
-        const tripRaw = localStorage.getItem('tp_trip_data');
+        const tripRaw = localStorage.getItem('tp_trip_data') || localStorage.getItem('bali_trip_data');
         if (tripRaw) {
           const t = await decryptData(key, tripRaw);
           if (t.trips) {
@@ -561,10 +569,16 @@ const App = {
           }
           if (trip.days.length) selDayId.value = trip.days[0].id;
         }
-        const keysRaw = localStorage.getItem('tp_keys');
+        const keysRaw = localStorage.getItem('tp_keys') || localStorage.getItem('bali_keys');
         if (keysRaw) Object.assign(keys, await decryptData(key, keysRaw));
-        const vRaw = localStorage.getItem('tp_versions');
+        const vRaw = localStorage.getItem('tp_versions') || localStorage.getItem('bali_versions');
         if (vRaw) versions.value = await decryptData(key, vRaw);
+        // Migrate legacy keys to new namespace
+        if (localStorage.getItem('bali_has_password') && !localStorage.getItem('tp_has_password')) {
+          localStorage.setItem('tp_has_password', 'true');
+          localStorage.setItem('tp_salt', localStorage.getItem('bali_salt') || '');
+          await saveTrip(); await saveKeys(); await saveVersions();
+        }
         masterKey.value = key;
         lockPw.value = '';
         provider.value = localStorage.getItem('tp_provider') || 'openai';
@@ -607,11 +621,13 @@ const App = {
         toolCalls: m.toolCalls || [], _skip: m._skip || false,
         _lastAssistant: m._lastAssistant, _toolResultMessages: m._toolResultMessages
       }));
-      localStorage.setItem(`tp_messages_${activeTripIdx.value}`, await encryptData(masterKey.value, toSave));
+      const msgKey = trip.id || `trip_${activeTripIdx.value}`;
+      localStorage.setItem(`tp_messages_${msgKey}`, await encryptData(masterKey.value, toSave));
     }
     async function loadMessages() {
       if (!masterKey.value) return;
-      const raw = localStorage.getItem(`tp_messages_${activeTripIdx.value}`);
+      const msgKey = trip.id || `trip_${activeTripIdx.value}`;
+      const raw = localStorage.getItem(`tp_messages_${msgKey}`);
       if (raw) {
         try { messages.value = await decryptData(masterKey.value, raw); }
         catch { messages.value = []; }
