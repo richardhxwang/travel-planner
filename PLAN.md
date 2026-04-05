@@ -256,14 +256,14 @@ interface Version {
 - [x] All 5 provider API key management
 - [x] Provider/model selection
 
-### Phase 6 — Polish (partial)
+### Phase 6 — Polish ✅
 - [x] Slide/fade tab transitions
 - [x] Quick reply chips in chat (context-aware)
 - [x] Toast notifications
 - [x] IME-safe Chinese input (composing check)
 - [x] buildMsgs fix: tool call history preserved across turns
-- [ ] PWA "add to home screen" prompt
-- [ ] Offline-friendly (graceful degradation)
+- [x] PWA "add to home screen" prompt (beforeinstallprompt + iOS Safari detection)
+- [x] Offline-friendly (graceful degradation: offline banner, AI guard, online/offline events)
 
 ### Phase 7 — UI Redesign (TODO)
 Design reference: LumiChat (color system) + FurNote (tab bar)

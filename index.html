@@ -312,6 +312,13 @@ const App = {
     /* ---- Versions UI ---- */
     const showVers     = ref(false);
 
+    /* ---- PWA Install ---- */
+    const showA2HS     = ref(false);
+    let deferredPrompt = null;
+
+    /* ---- Offline State ---- */
+    const isOffline    = ref(!navigator.onLine);
+
     /* ---- Toasts ---- */
     const toasts       = ref([]);
 
@@ -365,7 +372,40 @@ const App = {
       dark.value = d; applyDark(d);
       if (!localStorage.getItem('bali_has_password')) screen.value = 'setup';
       else screen.value = 'lock';
+
+      // Offline detection
+      window.addEventListener('online', () => { isOffline.value = false; toast('网络已恢复', 'success'); });
+      window.addEventListener('offline', () => { isOffline.value = true; toast('网络已断开，部分功能不可用', 'error', 4000); });
+
+      // PWA install prompt
+      const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+      const a2hsDismissed = localStorage.getItem('bali_a2hs_dismissed');
+      if (!isStandalone && !a2hsDismissed) {
+        // Android: capture beforeinstallprompt
+        window.addEventListener('beforeinstallprompt', (e) => {
+          e.preventDefault();
+          deferredPrompt = e;
+          showA2HS.value = true;
+        });
+        // iOS Safari: show manual guide after 3s
+        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+        if (isIOS) setTimeout(() => { if (!showA2HS.value) showA2HS.value = true; }, 3000);
+      }
     });
+
+    function installPWA() {
+      if (deferredPrompt) {
+        deferredPrompt.prompt();
+        deferredPrompt.userChoice.then(() => { deferredPrompt = null; showA2HS.value = false; });
+      } else {
+        // iOS — just dismiss, the banner already shows instructions
+        showA2HS.value = false;
+      }
+    }
+    function dismissA2HS() {
+      showA2HS.value = false;
+      localStorage.setItem('bali_a2hs_dismissed', 'true');
+    }
 
     function applyDark(v) {
       document.documentElement.classList.toggle('dark', v);
@@ -743,6 +783,9 @@ const App = {
     async function sendMessage() {
       const txt = chatInput.value.trim();
       if (!txt || chatting.value) return;
+      if (!navigator.onLine) {
+        toast('当前处于离线状态，无法使用 AI', 'error'); return;
+      }
       if (!apiKey.value) {
         toast('请在设置中配置 ' + pCfg.value.name + ' API Key', 'error');
         activeTab.value = 'more'; return;
@@ -1061,7 +1104,7 @@ const App = {
       browseCat, browseQ, browseCats, filteredActs, allActs,
       showVers,
       showChgPw, newPw, newPw2, keys, keysSaved, showKeyVis,
-      toasts, quickChips, showPostChips,
+      toasts, quickChips, showPostChips, showA2HS, isOffline,
       PROVIDERS, TYPE_META,
       formatDate, formatDateShort, formatTs, renderMd, tcArgSummary,
       // methods
@@ -1072,7 +1115,7 @@ const App = {
       doAddDay, doAddAct,
       toggleDark, exportJSON, importJSON, doSaveKeys, doChangePw,
       selectProv, selectModel, restoreV,
-      TOOLS
+      installPWA, dismissA2HS, TOOLS
     };
   },
 
@@ -1128,6 +1171,13 @@ const App = {
 
 <!-- ═══════════════════════════════════════════ MAIN APP -->
 <div v-else class="flex flex-col h-screen max-h-screen">
+
+  <!-- Offline banner -->
+  <transition name="fade">
+    <div v-if="isOffline" class="flex-shrink-0 bg-amber-500 text-white text-center py-2 text-[12px] font-medium safe-top">
+      📡 离线模式 — 浏览和编辑行程仍可使用，AI 和地图需要网络
+    </div>
+  </transition>
 
   <!-- ── Content ── -->
   <div class="flex-1 overflow-hidden relative">
@@ -1929,6 +1979,26 @@ const App = {
           </div>
           <button @click="restoreV(v.id)" :class="['flex-shrink-0 text-[12px] font-semibold px-3 py-1.5 rounded-xl press-sm transition', isDark ? 'bg-blue-600/20 text-blue-400' : 'bg-blue-50 text-blue-600']">恢复</button>
         </div>
+      </div>
+    </div>
+  </div>
+</transition>
+
+<!-- A2HS Banner -->
+<transition name="slide-up">
+  <div v-if="showA2HS" class="fixed bottom-20 inset-x-4 z-[55] rounded-2xl shadow-2xl border overflow-hidden"
+    :class="isDark ? 'bg-[#2A2A2A] border-gray-700' : 'bg-white border-gray-100'">
+    <div class="px-4 py-3.5 flex items-center gap-3">
+      <span class="text-3xl flex-shrink-0">🏝️</span>
+      <div class="flex-1 min-w-0">
+        <p class="font-semibold text-[13px]">添加到主屏幕</p>
+        <p :class="['text-[11px] mt-0.5 leading-relaxed', isDark ? 'text-gray-400' : 'text-gray-500']">
+          获得全屏体验，像原生 App 一样使用
+        </p>
+      </div>
+      <div class="flex gap-2 flex-shrink-0">
+        <button @click="dismissA2HS" :class="['px-3 py-1.5 rounded-xl text-[12px] font-medium press-sm', isDark ? 'text-gray-400' : 'text-gray-500']">忽略</button>
+        <button @click="installPWA" class="px-3 py-1.5 rounded-xl bg-blue-500 text-white text-[12px] font-medium press-sm">安装</button>
       </div>
     </div>
   </div>
