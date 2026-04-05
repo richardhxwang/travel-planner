@@ -46,3 +46,8 @@ After every set of changes is complete:
 2. **Commit and push to repo**: Commit all changed files with a descriptive message, then push to `origin main` using the GitHub token from 1Password (`op item get "Github MBA token"`).
 
 Never skip these steps — the repo and plan must always reflect the current state.
+
+## Code Changes
+
+- **Diff only**: Always use targeted Edit tool replacements. Never rewrite the full `index.html`. The file is 1900+ lines — full rewrites are slow, error-prone, and hard to review.
+- For cross-cutting changes (e.g. replacing all emoji), make multiple sequential Edit calls on specific sections.
