@@ -38,3 +38,11 @@ Visual style: Notion-inspired — white/`#F7F6F3` cards, `#37352F` text, 8px rad
 ## AI Providers
 
 5 providers configured (endpoint + model list in `PLAN.md`): OpenAI, Groq, Kimi, Qwen, Gemini. Each provider has a starred default model. Web search is provider-specific (OpenAI uses `web_search_preview` tool, Kimi uses `search` param, Qwen uses `enable_search`, Gemini uses `google_search` tool).
+
+## Workflow Rules
+
+After every set of changes is complete:
+1. **Update `PLAN.md`**: Mark completed items with `[x]`, add new items if scope changed.
+2. **Commit and push to repo**: Commit all changed files with a descriptive message, then push to `origin main` using the GitHub token from 1Password (`op item get "Github MBA token"`).
+
+Never skip these steps — the repo and plan must always reflect the current state.
