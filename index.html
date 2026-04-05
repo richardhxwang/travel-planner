@@ -1264,9 +1264,32 @@ const App = {
     async function doChangePw() {
       if (newPw.value.length < 4) { toast('密码至少4位', 'error'); return; }
       if (newPw.value !== newPw2.value) { toast('两次密码不一致', 'error'); return; }
+      const oldKey = masterKey.value;
       const key = await deriveKey(newPw.value, saltArr.value);
       masterKey.value = key;
-      await saveTrip(); await saveVersions(); await saveKeys();
+      // Re-encrypt active trip data + keys
+      await saveTrip(); await saveVersions(); await saveKeys(); await saveMessages();
+      // Re-encrypt per-trip messages & versions for non-active trips
+      for (let i = 0; i < trips.value.length; i++) {
+        if (i === activeTripIdx.value) continue;
+        const tid = trips.value[i].id || `trip_${i}`;
+        // Re-encrypt messages
+        const mRaw = localStorage.getItem(`tp_messages_${tid}`);
+        if (mRaw) {
+          try {
+            const mData = await decryptData(oldKey, mRaw);
+            localStorage.setItem(`tp_messages_${tid}`, await encryptData(key, mData));
+          } catch {}
+        }
+        // Re-encrypt versions
+        const vRaw = localStorage.getItem(`tp_versions_${tid}`);
+        if (vRaw) {
+          try {
+            const vData = await decryptData(oldKey, vRaw);
+            localStorage.setItem(`tp_versions_${tid}`, await encryptData(key, vData));
+          } catch {}
+        }
+      }
       newPw.value = ''; newPw2.value = ''; showChgPw.value = false;
       toast('密码已修改', 'success');
     }
