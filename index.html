@@ -1,0 +1,1957 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="巴厘岛之旅">
+<meta name="theme-color" content="#ffffff" id="themeColorMeta">
+<title>巴厘岛旅行规划</title>
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%8F%9D%EF%B8%8F%3C/text%3E%3C/svg%3E">
+<link rel="manifest" href="data:application/manifest+json,%7B%22name%22%3A%22%E5%B7%B4%E5%8E%98%E5%B2%9B%E6%97%85%E8%A1%8C%E8%A7%84%E5%88%92%22%2C%22short_name%22%3A%22%E5%B7%B4%E5%8E%98%E5%B2%9B%22%2C%22start_url%22%3A%22.%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%23ffffff%22%2C%22theme_color%22%3A%22%23ffffff%22%7D">
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script type="importmap">{"imports":{"vue":"https://unpkg.com/vue@3/dist/vue.esm-browser.js"}}</script>
+<style>
+* { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
+body { font-family: -apple-system, 'Inter', 'SF Pro Text', sans-serif; overscroll-behavior: none; }
+.safe-top { padding-top: max(env(safe-area-inset-top, 0px), 12px); }
+.pb-safe { padding-bottom: max(env(safe-area-inset-bottom, 0px), 20px); }
+
+/* Scroll */
+.scroll-x { overflow-x: auto; scrollbar-width: none; -ms-overflow-style: none; }
+.scroll-x::-webkit-scrollbar { display: none; }
+.scroll-y { overflow-y: auto; scrollbar-width: none; -ms-overflow-style: none; }
+.scroll-y::-webkit-scrollbar { display: none; }
+
+/* Tab transitions */
+.tab-enter-active, .tab-leave-active { transition: all 0.2s ease; position: absolute; width: 100%; }
+.tab-enter-from { opacity: 0; transform: translateY(8px); }
+.tab-leave-to { opacity: 0; transform: translateY(-4px); }
+
+.slide-up-enter-active, .slide-up-leave-active { transition: all 0.3s cubic-bezier(0.4,0,0.2,1); }
+.slide-up-enter-from, .slide-up-leave-to { transform: translateY(100%); opacity: 0; }
+
+.fade-enter-active, .fade-leave-active { transition: opacity 0.18s; }
+.fade-enter-from, .fade-leave-to { opacity: 0; }
+
+/* Chat markdown */
+.prose-chat p { margin: 0 0 0.5em; line-height: 1.6; }
+.prose-chat p:last-child { margin-bottom: 0; }
+.prose-chat ul, .prose-chat ol { margin: 0.3em 0 0.3em 1.3em; padding: 0; }
+.prose-chat li { margin: 0.2em 0; }
+.prose-chat code { background: rgba(0,0,0,0.07); border-radius: 3px; padding: 1px 5px; font-size: 0.85em; font-family: 'SF Mono', monospace; }
+.prose-chat pre { background: rgba(0,0,0,0.06); border-radius: 8px; padding: 10px 12px; overflow-x: auto; margin: 0.5em 0; }
+.prose-chat pre code { background: none; padding: 0; }
+.prose-chat strong { font-weight: 600; }
+.prose-chat h1, .prose-chat h2, .prose-chat h3 { font-weight: 600; margin: 0.6em 0 0.3em; line-height: 1.4; }
+.prose-chat h3 { font-size: 0.95em; }
+.dark .prose-chat code { background: rgba(255,255,255,0.1); }
+.dark .prose-chat pre { background: rgba(255,255,255,0.06); }
+.prose-chat blockquote { border-left: 3px solid #d1d5db; padding-left: 10px; color: #6b7280; margin: 0.4em 0; }
+.prose-chat a { color: #3b82f6; text-decoration: underline; }
+.prose-chat hr { border: none; border-top: 1px solid #e5e7eb; margin: 0.6em 0; }
+
+/* Timeline dot */
+.t-dot { position: absolute; width: 14px; height: 14px; border-radius: 50%; border: 2.5px solid; z-index: 2; }
+
+/* Spinner */
+@keyframes spin { to { transform: rotate(360deg); } }
+.spinner { animation: spin 0.75s linear infinite; }
+
+/* Dots pulse */
+@keyframes pdot { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.3;transform:scale(0.7)} }
+.pdot { animation: pdot 1.2s ease-in-out infinite; }
+.pdot:nth-child(2) { animation-delay: 0.15s; }
+.pdot:nth-child(3) { animation-delay: 0.3s; }
+
+/* Skeleton */
+@keyframes shimmer { 0%{background-position:-200% 0} 100%{background-position:200% 0} }
+.skel { background: linear-gradient(90deg,#f0f0f0 25%,#e8e8e8 50%,#f0f0f0 75%); background-size: 200% 100%; animation: shimmer 1.4s infinite; border-radius: 6px; }
+.dark .skel { background: linear-gradient(90deg,#2a2a2a 25%,#333 50%,#2a2a2a 75%); background-size: 200% 100%; }
+
+/* Toast */
+@keyframes tin { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+@keyframes tout { from{opacity:1;transform:translateY(0)} to{opacity:0;transform:translateY(8px)} }
+.toast-enter-active { animation: tin 0.25s ease; }
+.toast-leave-active { animation: tout 0.25s ease; }
+
+/* Press states */
+.press:active { transform: scale(0.97); }
+.press-sm:active { transform: scale(0.95); opacity: 0.8; }
+
+/* Expand icon */
+.chev { transition: transform 0.2s; }
+.chev.open { transform: rotate(180deg); }
+
+/* Dark mode */
+html.dark body { background: #191919; color: #E3E2DE; }
+
+/* Line clamp */
+.line-clamp-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+
+/* Smooth focus rings */
+input:focus, textarea:focus, select:focus { box-shadow: 0 0 0 2px rgba(59,130,246,0.2); }
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script type="module">
+import { createApp, ref, reactive, computed, watch, onMounted, nextTick } from 'vue';
+
+/* =====================================================
+   CRYPTO UTILITIES
+===================================================== */
+async function deriveKey(password, salt) {
+  const enc = new TextEncoder();
+  const mat = await crypto.subtle.importKey('raw', enc.encode(password), 'PBKDF2', false, ['deriveKey']);
+  return crypto.subtle.deriveKey(
+    { name: 'PBKDF2', salt, iterations: 100000, hash: 'SHA-256' },
+    mat, { name: 'AES-GCM', length: 256 }, false, ['encrypt', 'decrypt']
+  );
+}
+async function encryptData(key, data) {
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const enc = new TextEncoder();
+  const ct = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, enc.encode(JSON.stringify(data)));
+  const buf = new Uint8Array(12 + ct.byteLength);
+  buf.set(iv); buf.set(new Uint8Array(ct), 12);
+  return btoa(String.fromCharCode(...buf));
+}
+async function decryptData(key, b64) {
+  const bytes = Uint8Array.from(atob(b64), c => c.charCodeAt(0));
+  const dec = new TextDecoder();
+  const plain = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: bytes.slice(0,12) }, key, bytes.slice(12));
+  return JSON.parse(dec.decode(plain));
+}
+const b64ToArr = b64 => Uint8Array.from(atob(b64), c => c.charCodeAt(0));
+const arrToB64 = arr => btoa(String.fromCharCode(...arr));
+const genId = () => Date.now().toString(36) + Math.random().toString(36).slice(2,7);
+
+/* =====================================================
+   PROVIDER CONFIG
+===================================================== */
+const PROVIDERS = {
+  openai: { name:'OpenAI', endpoint:'https://api.openai.com/v1/chat/completions', webSearch:'tool',
+    models:[{id:'gpt-4o-mini',label:'GPT-4o Mini',def:true},{id:'gpt-4o',label:'GPT-4o'},{id:'gpt-4.1',label:'GPT-4.1'},{id:'o3-mini',label:'o3-mini'}] },
+  groq: { name:'Groq', endpoint:'https://api.groq.com/openai/v1/chat/completions', webSearch:false,
+    models:[{id:'llama-3.3-70b-versatile',label:'Llama 3.3 70B',def:true},{id:'llama-4-scout-17b-16e-instruct',label:'Llama 4 Scout'},{id:'qwen-qwq-32b',label:'QwQ 32B'}] },
+  kimi: { name:'Kimi', endpoint:'https://api.moonshot.cn/v1/chat/completions', webSearch:'param',
+    models:[{id:'moonshot-v1-128k',label:'Moonshot 128K',def:true},{id:'moonshot-v1-32k',label:'Moonshot 32K'},{id:'moonshot-v1-8k',label:'Moonshot 8K'}] },
+  qwen: { name:'Qwen', endpoint:'https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions', webSearch:'param',
+    models:[{id:'qwen-plus',label:'Qwen Plus',def:true},{id:'qwen-max',label:'Qwen Max'},{id:'qwen-turbo',label:'Qwen Turbo'}] },
+  gemini: { name:'Gemini', endpoint:'https://generativelanguage.googleapis.com/v1beta/openai/chat/completions', webSearch:'tool',
+    models:[{id:'gemini-2.0-flash',label:'Gemini 2.0 Flash',def:true},{id:'gemini-2.0-flash-thinking-exp',label:'Gemini 2.0 Thinking'},{id:'gemini-2.5-pro-preview-03-25',label:'Gemini 2.5 Pro'}] }
+};
+
+const SYS_PROMPT = `你是一个专业的巴厘岛旅行规划助手。你可以通过函数调用来管理用户的行程。请用中文回复。
+
+当添加活动时，请尽量填充以下所有信息：
+- googleInfo: { rating, reviewCount, hours, phone, website, priceLevel }
+- xiaohongshu: { summary: "小红书上的推荐摘要", highlights: ["亮点1","亮点2"], posts: [{title:"帖子标题",url:"https://..."}], searchUrl: "https://www.xiaohongshu.com/search_result?keyword=地名" }
+- instagram: { summary: "Instagram上的评价", hashtags: ["bali","ubud"], posts: [{url:"https://...",description:"描述"}], searchUrl: "https://www.instagram.com/explore/tags/地名/" }
+- reservation: { required: true/false, urgency: "建议提前1天预订", links: [{platform:"官网",url:"https://..."}], tip: "预订建议" }
+- location: { lat, lng } — 请提供准确的GPS坐标
+- address: 完整地址
+
+每次修改前先调用 save_version 保存快照（除非是 get 类操作）。
+用简洁友好的语气回复，回复后用一句话总结你做了什么。
+
+当前行程数据会通过 get_itinerary 提供给你。`;
+
+const AI_TOOLS = [
+  {type:'function',function:{name:'get_itinerary',description:'获取完整行程数据',parameters:{type:'object',properties:{}}}},
+  {type:'function',function:{name:'create_trip',description:'创建或初始化行程',parameters:{type:'object',properties:{name:{type:'string'},destination:{type:'string'},startDate:{type:'string',description:'YYYY-MM-DD'},endDate:{type:'string'},notes:{type:'string'}},required:['name','destination','startDate','endDate']}}},
+  {type:'function',function:{name:'update_trip',description:'更新行程基本信息',parameters:{type:'object',properties:{name:{type:'string'},destination:{type:'string'},startDate:{type:'string'},endDate:{type:'string'},notes:{type:'string'}}}}},
+  {type:'function',function:{name:'add_day',description:'添加新的一天到行程',parameters:{type:'object',properties:{date:{type:'string',description:'YYYY-MM-DD'},title:{type:'string',description:'这天的主题，如"乌布文化日"'}},required:['date','title']}}},
+  {type:'function',function:{name:'update_day',description:'更新某天的信息',parameters:{type:'object',properties:{dayId:{type:'string'},date:{type:'string'},title:{type:'string'}},required:['dayId']}}},
+  {type:'function',function:{name:'delete_day',description:'删除某天（包括其所有活动）',parameters:{type:'object',properties:{dayId:{type:'string'}},required:['dayId']}}},
+  {type:'function',function:{name:'duplicate_day',description:'复制某天到新日期',parameters:{type:'object',properties:{dayId:{type:'string'},newDate:{type:'string'}},required:['dayId','newDate']}}},
+  {type:'function',function:{name:'reorder_day',description:'重新排列某天的活动顺序',parameters:{type:'object',properties:{dayId:{type:'string'},activityIds:{type:'array',items:{type:'string'}}},required:['dayId','activityIds']}}},
+  {type:'function',function:{name:'add_activity',description:'向某天添加活动',parameters:{type:'object',properties:{dayId:{type:'string'},time:{type:'string',description:'HH:MM'},endTime:{type:'string'},type:{type:'string',enum:['attraction','restaurant','transport','hotel','other']},name:{type:'string'},address:{type:'string'},notes:{type:'string'},placeId:{type:'string'},location:{type:'object',properties:{lat:{type:'number'},lng:{type:'number'}}},googleInfo:{type:'object'},xiaohongshu:{type:'object'},instagram:{type:'object'},reservation:{type:'object',properties:{required:{type:'boolean'},urgency:{type:'string'},links:{type:'array'},tip:{type:'string'}}}},required:['dayId','time','type','name']}}},
+  {type:'function',function:{name:'update_activity',description:'修改某个活动的字段',parameters:{type:'object',properties:{activityId:{type:'string'},time:{type:'string'},endTime:{type:'string'},type:{type:'string',enum:['attraction','restaurant','transport','hotel','other']},name:{type:'string'},address:{type:'string'},notes:{type:'string'},googleInfo:{type:'object'},xiaohongshu:{type:'object'},instagram:{type:'object'},reservation:{type:'object'},travelFromPrev:{type:'object'}},required:['activityId']}}},
+  {type:'function',function:{name:'delete_activity',description:'删除某个活动',parameters:{type:'object',properties:{activityId:{type:'string'}},required:['activityId']}}},
+  {type:'function',function:{name:'move_activity',description:'将活动移动到另一天或重新排序',parameters:{type:'object',properties:{activityId:{type:'string'},targetDayId:{type:'string'},insertAfterActivityId:{type:'string',description:'插入到哪个活动之后，不填则插到末尾'}},required:['activityId','targetDayId']}}},
+  {type:'function',function:{name:'batch_update',description:'原子性执行多个操作',parameters:{type:'object',properties:{operations:{type:'array',items:{type:'object',properties:{tool:{type:'string'},params:{type:'object'}}}}},required:['operations']}}},
+  {type:'function',function:{name:'calculate_route',description:'计算两个活动之间的行程时间',parameters:{type:'object',properties:{fromActivityId:{type:'string'},toActivityId:{type:'string'},mode:{type:'string',enum:['driving','walking','transit'],default:'driving'}},required:['fromActivityId','toActivityId']}}},
+  {type:'function',function:{name:'update_all_routes',description:'重新计算某天所有活动的路程',parameters:{type:'object',properties:{dayId:{type:'string'}},required:['dayId']}}},
+  {type:'function',function:{name:'add_tip',description:'添加旅行提示',parameters:{type:'object',properties:{category:{type:'string',description:'如"交通"、"货币"、"文化"、"天气"'},content:{type:'string'}},required:['category','content']}}},
+  {type:'function',function:{name:'delete_tip',description:'删除旅行提示',parameters:{type:'object',properties:{tipId:{type:'string'}},required:['tipId']}}},
+  {type:'function',function:{name:'save_version',description:'保存当前行程快照',parameters:{type:'object',properties:{label:{type:'string',description:'版本描述，如"规划乌布第一天"'}},required:['label']}}},
+  {type:'function',function:{name:'restore_version',description:'恢复到某个历史版本',parameters:{type:'object',properties:{versionId:{type:'string'}},required:['versionId']}}},
+  {type:'function',function:{name:'compare_versions',description:'对比两个版本的差异',parameters:{type:'object',properties:{versionId1:{type:'string'},versionId2:{type:'string'}},required:['versionId1','versionId2']}}},
+  {type:'function',function:{name:'get_versions',description:'获取所有历史版本列表',parameters:{type:'object',properties:{}}}},
+  {type:'function',function:{name:'search_place',description:'搜索Google Places获取地点信息',parameters:{type:'object',properties:{query:{type:'string',description:'搜索词，如"Locavore restaurant Ubud Bali"'},location:{type:'string',description:'地区，默认"Bali, Indonesia"'}},required:['query']}}}
+];
+
+/* =====================================================
+   ACTIVITY META
+===================================================== */
+const TYPE_META = {
+  attraction:{ icon:'🏛️', color:'#3B82F6', bg:'#EFF6FF', label:'景点' },
+  restaurant: { icon:'🍽️', color:'#F97316', bg:'#FFF7ED', label:'餐厅' },
+  transport:  { icon:'🚗', color:'#6B7280', bg:'#F9FAFB', label:'交通' },
+  hotel:      { icon:'🏨', color:'#8B5CF6', bg:'#F5F3FF', label:'酒店' },
+  other:      { icon:'📍', color:'#10B981', bg:'#ECFDF5', label:'其他' }
+};
+
+const MUTATING_TOOLS = new Set(['create_trip','update_trip','add_day','update_day','delete_day','duplicate_day','reorder_day','add_activity','update_activity','delete_activity','move_activity','batch_update','restore_version','add_tip','delete_tip']);
+
+function formatDate(s) {
+  if (!s) return '';
+  const d = new Date(s + 'T12:00:00');
+  return d.toLocaleDateString('zh-CN', { month:'long', day:'numeric', weekday:'short' });
+}
+function formatDateShort(s) {
+  if (!s) return '';
+  const d = new Date(s + 'T12:00:00');
+  const wd = ['日','一','二','三','四','五','六'];
+  return `${d.getMonth()+1}/${d.getDate()} 周${wd[d.getDay()]}`;
+}
+function formatTs(ts) {
+  return new Date(ts).toLocaleString('zh-CN',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'});
+}
+function findActivity(trip, activityId) {
+  for (const day of trip.days) {
+    const idx = day.activities.findIndex(a => a.id === activityId);
+    if (idx !== -1) return { day, act: day.activities[idx], idx };
+  }
+  return null;
+}
+function tcArgSummary(argsStr) {
+  try {
+    const p = JSON.parse(argsStr || '{}');
+    const entries = Object.entries(p).slice(0, 2);
+    return entries.map(([k,v]) => {
+      const vs = typeof v === 'string' ? v : JSON.stringify(v);
+      return `${k}: ${vs.slice(0, 20)}`;
+    }).join('  ');
+  } catch { return ''; }
+}
+
+/* =====================================================
+   MAIN APP
+===================================================== */
+const App = {
+  setup() {
+    /* ---- Auth State ---- */
+    const screen    = ref('lock'); // lock | setup | app
+    const masterKey = ref(null);
+    const saltArr   = ref(null);
+    const lockPw    = ref('');
+    const setupPw   = ref('');
+    const setupPw2  = ref('');
+    const lockErr   = ref('');
+    const setupErr  = ref('');
+    const unlocking = ref(false);
+    const showLockPw  = ref(false);
+    const showSetupPw = ref(false);
+
+    /* ---- App State ---- */
+    const activeTab = ref('ai');
+    const dark      = ref(false);
+
+    /* ---- Trip Data ---- */
+    const trip = reactive({
+      id:'', name:'', destination:'Bali, Indonesia',
+      startDate:'', endDate:'', days:[], tips:[], notes:'',
+      createdAt:0, updatedAt:0
+    });
+    const versions = ref([]);
+
+    /* ---- Settings State ---- */
+    const keys = reactive({ openai:'', groq:'', kimi:'', qwen:'', gemini:'', maps:'' });
+    const keysSaved    = ref(false);
+    const showChgPw    = ref(false);
+    const newPw        = ref('');
+    const newPw2       = ref('');
+    const showKeyVis   = reactive({ openai:false, groq:false, kimi:false, qwen:false, gemini:false, maps:false });
+
+    /* ---- AI Chat State ---- */
+    const messages     = ref([]);
+    const chatInput    = ref('');
+    const chatting     = ref(false);
+    const provider     = ref(localStorage.getItem('bali_provider') || 'openai');
+    const model        = ref(localStorage.getItem('bali_model') || 'gpt-4o-mini');
+    const webSearch    = ref(false);
+    const showProv     = ref(false);
+    const showMdl      = ref(false);
+    const chatEndEl    = ref(null);
+    const chatScrollEl = ref(null);
+    const abortCtrl    = ref(null);
+    const chatInputEl  = ref(null);
+
+    /* ---- Timeline State ---- */
+    const selDayId     = ref('');
+    // Use reactive object for expanded state so Vue tracks it properly
+    const expandedMap  = reactive({});
+    const showEditAct  = ref(false);
+    const editAct      = ref(null);
+    const ctxAct       = ref(null);
+    const ctxDay       = ref(null);
+    const showAddDay   = ref(false);
+    const addDayDate   = ref('');
+    const addDayTitle  = ref('');
+    const showAddAct   = ref(false);
+    const newAct       = reactive({ time:'09:00', endTime:'', type:'attraction', name:'', address:'', notes:'' });
+
+    /* ---- Map State ---- */
+    const mapReady     = ref(false);
+    const mapErr       = ref('');
+    let mapInst        = null;
+    let mapMarkers     = [];
+    let mapPolylines   = [];
+    let mapInfoWin     = null;
+
+    /* ---- Browse State ---- */
+    const browseCat    = ref('全部');
+    const browseQ      = ref('');
+    const browseCats   = ['全部','景点','餐厅','酒店','交通','其他','小贴士'];
+
+    /* ---- Versions UI ---- */
+    const showVers     = ref(false);
+
+    /* ---- Toasts ---- */
+    const toasts       = ref([]);
+
+    /* =====================================================
+       COMPUTED
+    ===================================================== */
+    const isDark = computed(() => dark.value);
+    const selDay = computed(() => trip.days.find(d => d.id === selDayId.value) || null);
+    const pCfg   = computed(() => PROVIDERS[provider.value]);
+    const apiKey = computed(() => keys[provider.value]);
+
+    const allActs = computed(() => {
+      const r = [];
+      for (const day of trip.days)
+        for (const a of day.activities)
+          r.push({ ...a, dayTitle: day.title, dayDate: day.date, dayId: day.id });
+      return r;
+    });
+
+    const filteredActs = computed(() => {
+      const catMap = { '景点':'attraction','餐厅':'restaurant','酒店':'hotel','交通':'transport','其他':'other' };
+      let acts = allActs.value;
+      if (browseCat.value !== '全部' && browseCat.value !== '小贴士') {
+        const t = catMap[browseCat.value];
+        if (t) acts = acts.filter(a => a.type === t);
+      }
+      if (browseQ.value.trim()) {
+        const q = browseQ.value.toLowerCase();
+        acts = acts.filter(a => a.name.toLowerCase().includes(q) || (a.address||'').toLowerCase().includes(q) || (a.notes||'').toLowerCase().includes(q));
+      }
+      return acts;
+    });
+
+    const quickChips = computed(() => {
+      if (!trip.name) return ['帮我创建5天巴厘岛行程','推荐乌布必去景点','推荐当地特色餐厅','介绍巴厘岛交通方式'];
+      return ['添加明天的行程','搜索附近餐厅','计算路线时间','添加旅行小贴士'];
+    });
+
+    // Show chips after last assistant message when not chatting
+    const showPostChips = computed(() => {
+      if (chatting.value || !messages.value.length) return false;
+      const last = messages.value[messages.value.length - 1];
+      return last && last.role === 'assistant' && !last._skip && last.content;
+    });
+
+    /* =====================================================
+       INIT
+    ===================================================== */
+    onMounted(() => {
+      const d = localStorage.getItem('bali_dark') === 'true';
+      dark.value = d; applyDark(d);
+      if (!localStorage.getItem('bali_has_password')) screen.value = 'setup';
+      else screen.value = 'lock';
+    });
+
+    function applyDark(v) {
+      document.documentElement.classList.toggle('dark', v);
+      document.getElementById('themeColorMeta').content = v ? '#191919' : '#ffffff';
+    }
+
+    /* =====================================================
+       AUTH
+    ===================================================== */
+    async function doSetup() {
+      if (setupPw.value.length < 4) { setupErr.value = '密码至少需要4位'; return; }
+      if (setupPw.value !== setupPw2.value) { setupErr.value = '两次密码不一致'; return; }
+      setupErr.value = '';
+      const s = crypto.getRandomValues(new Uint8Array(16));
+      saltArr.value = s;
+      localStorage.setItem('bali_salt', arrToB64(s));
+      masterKey.value = await deriveKey(setupPw.value, s);
+      localStorage.setItem('bali_has_password', 'true');
+      await saveTrip(); await saveVersions(); await saveKeys();
+      setupPw.value = ''; setupPw2.value = '';
+      screen.value = 'app';
+    }
+
+    async function doUnlock() {
+      if (!lockPw.value) { lockErr.value = '请输入密码'; return; }
+      unlocking.value = true; lockErr.value = '';
+      try {
+        const s = b64ToArr(localStorage.getItem('bali_salt') || '');
+        saltArr.value = s;
+        const key = await deriveKey(lockPw.value, s);
+        const tripRaw = localStorage.getItem('bali_trip_data');
+        if (tripRaw) {
+          const t = await decryptData(key, tripRaw);
+          Object.assign(trip, t);
+          if (trip.days.length) selDayId.value = trip.days[0].id;
+        }
+        const keysRaw = localStorage.getItem('bali_keys');
+        if (keysRaw) Object.assign(keys, await decryptData(key, keysRaw));
+        const vRaw = localStorage.getItem('bali_versions');
+        if (vRaw) versions.value = await decryptData(key, vRaw);
+        masterKey.value = key;
+        lockPw.value = '';
+        provider.value = localStorage.getItem('bali_provider') || 'openai';
+        model.value = localStorage.getItem('bali_model') || 'gpt-4o-mini';
+        screen.value = 'app';
+      } catch(e) {
+        lockErr.value = '密码错误，请重试';
+      } finally { unlocking.value = false; }
+    }
+
+    function doLock() {
+      masterKey.value = null;
+      Object.assign(keys, { openai:'', groq:'', kimi:'', qwen:'', gemini:'', maps:'' });
+      messages.value = [];
+      screen.value = 'lock';
+    }
+
+    /* =====================================================
+       PERSISTENCE
+    ===================================================== */
+    async function saveTrip() {
+      if (!masterKey.value) return;
+      localStorage.setItem('bali_trip_data', await encryptData(masterKey.value, JSON.parse(JSON.stringify(trip))));
+    }
+    async function saveVersions() {
+      if (!masterKey.value) return;
+      localStorage.setItem('bali_versions', await encryptData(masterKey.value, versions.value));
+    }
+    async function saveKeys() {
+      if (!masterKey.value) return;
+      localStorage.setItem('bali_keys', await encryptData(masterKey.value, JSON.parse(JSON.stringify(keys))));
+    }
+
+    /* =====================================================
+       TOASTS
+    ===================================================== */
+    function toast(msg, type = 'info', dur = 2800) {
+      const id = genId();
+      toasts.value.push({ id, msg, type });
+      setTimeout(() => { toasts.value = toasts.value.filter(t => t.id !== id); }, dur);
+    }
+
+    /* =====================================================
+       TOOL HANDLERS
+    ===================================================== */
+    const TOOLS = {
+      get_itinerary: () => JSON.parse(JSON.stringify(trip)),
+
+      create_trip: ({ name, destination, startDate, endDate, notes }) => {
+        trip.id = genId(); trip.name = name; trip.destination = destination || 'Bali, Indonesia';
+        trip.startDate = startDate; trip.endDate = endDate; trip.notes = notes || '';
+        trip.days = []; trip.tips = []; trip.createdAt = Date.now(); trip.updatedAt = Date.now();
+        saveTrip(); return { success:true, tripId:trip.id };
+      },
+
+      update_trip: (p) => {
+        ['name','destination','startDate','endDate','notes'].forEach(k => { if (p[k] !== undefined) trip[k] = p[k]; });
+        trip.updatedAt = Date.now(); saveTrip(); return { success:true };
+      },
+
+      add_day: ({ date, title }) => {
+        const day = { id:genId(), date, title, activities:[] };
+        trip.days.push(day);
+        trip.days.sort((a,b) => a.date.localeCompare(b.date));
+        if (!selDayId.value) selDayId.value = day.id;
+        trip.updatedAt = Date.now(); saveTrip();
+        return { success:true, dayId:day.id };
+      },
+
+      update_day: ({ dayId, date, title }) => {
+        const day = trip.days.find(d => d.id === dayId);
+        if (!day) return { error:'Day not found' };
+        if (date) day.date = date; if (title) day.title = title;
+        trip.updatedAt = Date.now(); saveTrip(); return { success:true };
+      },
+
+      delete_day: ({ dayId }) => {
+        const idx = trip.days.findIndex(d => d.id === dayId);
+        if (idx === -1) return { error:'Day not found' };
+        trip.days.splice(idx, 1);
+        if (selDayId.value === dayId) selDayId.value = trip.days[0]?.id || '';
+        trip.updatedAt = Date.now(); saveTrip(); return { success:true };
+      },
+
+      duplicate_day: ({ dayId, newDate }) => {
+        const day = trip.days.find(d => d.id === dayId);
+        if (!day) return { error:'Day not found' };
+        const nd = JSON.parse(JSON.stringify(day));
+        nd.id = genId(); nd.date = newDate;
+        nd.activities = nd.activities.map(a => ({ ...a, id:genId() }));
+        trip.days.push(nd); trip.days.sort((a,b) => a.date.localeCompare(b.date));
+        trip.updatedAt = Date.now(); saveTrip(); return { success:true, dayId:nd.id };
+      },
+
+      reorder_day: ({ dayId, activityIds }) => {
+        const day = trip.days.find(d => d.id === dayId);
+        if (!day) return { error:'Day not found' };
+        const map = Object.fromEntries(day.activities.map(a => [a.id, a]));
+        day.activities = activityIds.map(id => map[id]).filter(Boolean);
+        trip.updatedAt = Date.now(); saveTrip(); return { success:true };
+      },
+
+      add_activity: ({ dayId, time, endTime, type, name, address, notes, placeId, location, googleInfo, xiaohongshu, instagram, reservation }) => {
+        const day = trip.days.find(d => d.id === dayId);
+        if (!day) return { error:'Day not found' };
+        const act = {
+          id:genId(), time:time||'09:00', endTime:endTime||'', type:type||'attraction',
+          name, address:address||'', notes:notes||'', placeId:placeId||'',
+          location:location||null, googleInfo:googleInfo||null,
+          xiaohongshu:xiaohongshu||null, instagram:instagram||null,
+          reservation:reservation||{ required:false, links:[] }, travelFromPrev:null
+        };
+        day.activities.push(act);
+        day.activities.sort((a,b) => a.time.localeCompare(b.time));
+        trip.updatedAt = Date.now(); saveTrip(); return { success:true, activityId:act.id };
+      },
+
+      update_activity: ({ activityId, ...fields }) => {
+        const found = findActivity(trip, activityId);
+        if (!found) return { error:'Activity not found' };
+        Object.assign(found.act, fields);
+        trip.updatedAt = Date.now(); saveTrip(); return { success:true };
+      },
+
+      delete_activity: ({ activityId }) => {
+        for (const day of trip.days) {
+          const i = day.activities.findIndex(a => a.id === activityId);
+          if (i !== -1) { day.activities.splice(i,1); trip.updatedAt = Date.now(); saveTrip(); return { success:true }; }
+        }
+        return { error:'Activity not found' };
+      },
+
+      move_activity: ({ activityId, targetDayId, insertAfterActivityId }) => {
+        const found = findActivity(trip, activityId);
+        if (!found) return { error:'Activity not found' };
+        found.day.activities.splice(found.idx, 1);
+        const tDay = trip.days.find(d => d.id === targetDayId);
+        if (!tDay) return { error:'Target day not found' };
+        if (insertAfterActivityId) {
+          const ai = tDay.activities.findIndex(a => a.id === insertAfterActivityId);
+          tDay.activities.splice(ai + 1, 0, found.act);
+        } else {
+          tDay.activities.push(found.act);
+        }
+        trip.updatedAt = Date.now(); saveTrip(); return { success:true };
+      },
+
+      batch_update: async ({ operations }) => {
+        const res = [];
+        for (const op of operations) {
+          const h = TOOLS[op.tool];
+          res.push(h ? (await h(op.params)) : { error:`Unknown: ${op.tool}` });
+        }
+        return { success:true, results:res };
+      },
+
+      calculate_route: async ({ fromActivityId, toActivityId, mode='driving' }) => {
+        const from = findActivity(trip, fromActivityId);
+        const to   = findActivity(trip, toActivityId);
+        if (!from || !to) return { error:'Activity not found' };
+        const durs = { driving:'15–30 分钟', walking:'30–60 分钟', transit:'20–40 分钟' };
+        const dists = { driving:'5–15 km', walking:'1–3 km', transit:'5–15 km' };
+        const route = { duration:durs[mode], distance:dists[mode], mode };
+        to.act.travelFromPrev = route;
+        trip.updatedAt = Date.now(); saveTrip(); return { success:true, route };
+      },
+
+      update_all_routes: async ({ dayId }) => {
+        const day = trip.days.find(d => d.id === dayId);
+        if (!day) return { error:'Day not found' };
+        day.activities.slice(1).forEach(a => {
+          a.travelFromPrev = { duration:'15–30 分钟', distance:'5–15 km', mode:'driving' };
+        });
+        trip.updatedAt = Date.now(); saveTrip(); return { success:true };
+      },
+
+      add_tip: ({ category, content }) => {
+        const tip = { id:genId(), category, content };
+        trip.tips.push(tip); trip.updatedAt = Date.now(); saveTrip();
+        return { success:true, tipId:tip.id };
+      },
+
+      delete_tip: ({ tipId }) => {
+        const i = trip.tips.findIndex(t => t.id === tipId);
+        if (i === -1) return { error:'Tip not found' };
+        trip.tips.splice(i,1); trip.updatedAt = Date.now(); saveTrip(); return { success:true };
+      },
+
+      save_version: ({ label }) => {
+        const v = { id:genId(), label, timestamp:Date.now(), snapshot:JSON.parse(JSON.stringify(trip)) };
+        versions.value.unshift(v);
+        if (versions.value.length > 50) versions.value.length = 50;
+        saveVersions(); return { success:true, versionId:v.id };
+      },
+
+      restore_version: ({ versionId }) => {
+        const v = versions.value.find(x => x.id === versionId);
+        if (!v) return { error:'Version not found' };
+        Object.assign(trip, JSON.parse(JSON.stringify(v.snapshot)));
+        trip.updatedAt = Date.now(); saveTrip(); return { success:true };
+      },
+
+      compare_versions: ({ versionId1, versionId2 }) => {
+        const v1 = versions.value.find(x => x.id === versionId1);
+        const v2 = versions.value.find(x => x.id === versionId2);
+        if (!v1 || !v2) return { error:'Version not found' };
+        return { success:true, comparison:{
+          v1:{ label:v1.label, days:v1.snapshot.days.length, activities:v1.snapshot.days.reduce((s,d)=>s+d.activities.length,0) },
+          v2:{ label:v2.label, days:v2.snapshot.days.length, activities:v2.snapshot.days.reduce((s,d)=>s+d.activities.length,0) }
+        }};
+      },
+
+      get_versions: () => versions.value.map(v => ({ id:v.id, label:v.label, timestamp:v.timestamp, days:v.snapshot.days.length })),
+
+      search_place: ({ query, location='Bali, Indonesia' }) => ({
+        success:true, query, location,
+        note:'Using AI knowledge base. Configure Google Maps API for live data.',
+        hint:`请根据"${query}"的知识提供详细地点信息，然后使用add_activity添加到行程`
+      })
+    };
+
+    async function runTool(name, params) {
+      const h = TOOLS[name];
+      if (!h) throw new Error(`Unknown tool: ${name}`);
+      return await h(params);
+    }
+
+    /* =====================================================
+       AI STREAMING
+    ===================================================== */
+    async function* streamAI(msgs, provKey, mdl, key, doSearch) {
+      const cfg = PROVIDERS[provKey];
+      const body = { model:mdl, messages:msgs, stream:true, tools:AI_TOOLS, tool_choice:'auto' };
+
+      if (doSearch) {
+        if (cfg.webSearch === 'param') {
+          if (provKey === 'kimi') body.enable_search = true;
+          if (provKey === 'qwen') body.enable_search = true;
+        } else if (cfg.webSearch === 'tool') {
+          const searchTool = provKey === 'openai'
+            ? { type:'web_search_preview' }
+            : { type:'google_search' };
+          body.tools = [...AI_TOOLS, searchTool];
+        }
+      }
+
+      const ctrl = new AbortController();
+      abortCtrl.value = ctrl;
+
+      const resp = await fetch(cfg.endpoint, {
+        method:'POST',
+        headers:{ 'Content-Type':'application/json', 'Authorization':`Bearer ${key}` },
+        body:JSON.stringify(body),
+        signal:ctrl.signal
+      });
+
+      if (!resp.ok) {
+        const errText = await resp.text();
+        throw new Error(`HTTP ${resp.status}: ${errText}`);
+      }
+
+      const reader = resp.body.getReader();
+      const dec = new TextDecoder();
+      let buf = '';
+      let tcMap = {};
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buf += dec.decode(value, { stream:true });
+        const lines = buf.split('\n');
+        buf = lines.pop() || '';
+
+        for (const line of lines) {
+          const t = line.trim();
+          if (!t || t === 'data: [DONE]') continue;
+          if (!t.startsWith('data: ')) continue;
+          try {
+            const d = JSON.parse(t.slice(6));
+            const delta = d.choices?.[0]?.delta;
+            if (!delta) continue;
+            if (delta.content) yield { type:'text', content:delta.content };
+            if (delta.tool_calls) {
+              for (const tc of delta.tool_calls) {
+                const i = tc.index ?? 0;
+                if (!tcMap[i]) tcMap[i] = { id:tc.id||genId(), type:'function', function:{ name:'', arguments:'' } };
+                if (tc.id) tcMap[i].id = tc.id;
+                if (tc.function?.name) tcMap[i].function.name += tc.function.name;
+                if (tc.function?.arguments) tcMap[i].function.arguments += tc.function.arguments;
+              }
+            }
+          } catch {}
+        }
+      }
+      const tcs = Object.values(tcMap);
+      if (tcs.length) yield { type:'tool_calls', content:tcs };
+      yield { type:'done' };
+    }
+
+    /* ---- Build message history ---- */
+    function buildMsgs() {
+      const out = [{ role:'system', content:SYS_PROMPT }];
+      for (const m of messages.value) {
+        if (m.role === 'user') {
+          out.push({ role:'user', content:m.content });
+        } else if (m.role === 'assistant') {
+          if (m._toolResultMessages) {
+            // Turn that ended with tool calls: push assistant msg + tool results
+            if (m._lastAssistant) out.push(m._lastAssistant);
+            out.push(...m._toolResultMessages);
+          } else if (!m._skip && !m._continuation) {
+            // Skip empty in-progress assistant messages
+            if (!m.content && !m.toolCalls?.length && m.isStreaming) continue;
+            const msg = { role:'assistant', content:m.content || null };
+            if (m.toolCalls?.length) {
+              msg.tool_calls = m.toolCalls.map(tc => ({
+                id:tc.id, type:'function',
+                function:{ name:tc.function.name, arguments:tc.function.arguments }
+              }));
+            }
+            out.push(msg);
+          }
+        }
+      }
+      return out;
+    }
+
+    function handleEnter(e) {
+      if (e.isComposing || e.keyCode === 229) return; // IME composing, ignore
+      if (e.shiftKey) return; // Shift+Enter = newline, let browser handle
+      e.preventDefault();
+      sendMessage();
+    }
+
+    async function sendMessage() {
+      const txt = chatInput.value.trim();
+      if (!txt || chatting.value) return;
+      if (!apiKey.value) {
+        toast('请在设置中配置 ' + pCfg.value.name + ' API Key', 'error');
+        activeTab.value = 'more'; return;
+      }
+      chatInput.value = '';
+      // Reset textarea height
+      if (chatInputEl.value) { chatInputEl.value.style.height = 'auto'; }
+      chatting.value = true;
+      messages.value.push({ role:'user', content:txt, timestamp:Date.now() });
+      const aMsg = reactive({ role:'assistant', content:'', timestamp:Date.now(), toolCalls:[], isStreaming:true });
+      messages.value.push(aMsg);
+      scrollBottom();
+
+      try {
+        await doConversation(aMsg, 0);
+      } catch(e) {
+        if (e.name !== 'AbortError') {
+          aMsg.content += (aMsg.content ? '\n\n' : '') + '❌ 错误: ' + e.message;
+        } else {
+          aMsg.content += aMsg.content ? ' [已停止]' : '[已停止]';
+        }
+      } finally {
+        aMsg.isStreaming = false;
+        chatting.value = false;
+        abortCtrl.value = null;
+        scrollBottom();
+        await saveTrip();
+      }
+    }
+
+    async function doConversation(aMsg, depth) {
+      if (depth > 8) return;
+
+      const stream = streamAI(buildMsgs(), provider.value, model.value, apiKey.value, webSearch.value);
+      let text = ''; let tcs = [];
+
+      for await (const chunk of stream) {
+        if (chunk.type === 'text') {
+          text += chunk.content;
+          aMsg.content = text;
+          scrollBottom();
+        } else if (chunk.type === 'tool_calls') {
+          tcs = chunk.content;
+          aMsg.toolCalls = tcs;
+        }
+      }
+
+      if (!tcs.length) return;
+
+      // Execute tools
+      const toolResults = [];
+      for (const tc of tcs) {
+        const name = tc.function.name;
+        let params = {};
+        try { params = JSON.parse(tc.function.arguments || '{}'); } catch {}
+
+        if (MUTATING_TOOLS.has(name) && depth === 0) {
+          try { await TOOLS.save_version({ label:`AI操作前—${name}` }); } catch {}
+        }
+
+        let result;
+        try { result = await runTool(name, params); }
+        catch(e) { result = { error: e.message }; }
+
+        toolResults.push({ id:tc.id, name, result });
+        toast(`🔧 ${name}`, 'info', 1500);
+      }
+
+      // Record this turn's tool calls for message history reconstruction
+      aMsg._lastAssistant = {
+        role:'assistant', content:text || null,
+        tool_calls: tcs.map(tc => ({
+          id:tc.id, type:'function',
+          function:{ name:tc.function.name, arguments:tc.function.arguments }
+        }))
+      };
+      aMsg._toolResultMessages = toolResults.map(tr => ({
+        role:'tool', tool_call_id:tr.id, content:JSON.stringify(tr.result)
+      }));
+      aMsg._skip = true; // This message is now handled via _lastAssistant/_toolResultMessages
+
+      // New assistant message for continuation
+      const nextMsg = reactive({
+        role:'assistant', content:'', timestamp:Date.now(),
+        toolCalls:[], isStreaming:true, _continuation:true
+      });
+      messages.value.push(nextMsg);
+
+      await doConversation(nextMsg, depth + 1);
+
+      // Clean up empty continuation messages
+      if (!nextMsg.content && !nextMsg.toolCalls?.length && !nextMsg._toolResultMessages) {
+        const i = messages.value.indexOf(nextMsg);
+        if (i !== -1) messages.value.splice(i, 1);
+      } else {
+        nextMsg._continuation = false;
+      }
+    }
+
+    function stopChat() {
+      abortCtrl.value?.abort();
+    }
+
+    function scrollBottom() {
+      nextTick(() => chatEndEl.value?.scrollIntoView({ behavior:'smooth' }));
+    }
+
+    function sendChip(c) { chatInput.value = c; sendMessage(); }
+
+    /* =====================================================
+       TIMELINE UI
+    ===================================================== */
+    function toggleExp(id) {
+      expandedMap[id] = !expandedMap[id];
+    }
+
+    function openEditAct(act) {
+      editAct.value = JSON.parse(JSON.stringify(act));
+      ctxAct.value = null;
+      showEditAct.value = true;
+    }
+
+    async function saveEditAct() {
+      if (!editAct.value) return;
+      TOOLS.update_activity(editAct.value);
+      showEditAct.value = false;
+      toast('活动已更新', 'success');
+    }
+
+    async function deleteActUI(actId) {
+      await TOOLS.save_version({ label:'删除活动前' });
+      TOOLS.delete_activity({ activityId:actId });
+      ctxAct.value = null;
+      toast('活动已删除', 'success');
+    }
+
+    async function doAddDay() {
+      if (!addDayDate.value || !addDayTitle.value.trim()) { toast('请填写日期和标题', 'error'); return; }
+      await TOOLS.save_version({ label:'添加天前' });
+      TOOLS.add_day({ date:addDayDate.value, title:addDayTitle.value.trim() });
+      showAddDay.value = false; addDayDate.value = ''; addDayTitle.value = '';
+      toast('已添加新的一天', 'success');
+    }
+
+    async function doAddAct() {
+      if (!newAct.name.trim() || !selDayId.value) { toast('请填写活动名称', 'error'); return; }
+      await TOOLS.save_version({ label:'添加活动前' });
+      TOOLS.add_activity({ dayId:selDayId.value, ...JSON.parse(JSON.stringify(newAct)) });
+      showAddAct.value = false;
+      Object.assign(newAct, { time:'09:00', endTime:'', type:'attraction', name:'', address:'', notes:'' });
+      toast('活动已添加', 'success');
+    }
+
+    /* =====================================================
+       MAP
+    ===================================================== */
+    async function initMap() {
+      if (!keys.maps) { mapErr.value = '请在设置中添加 Google Maps API Key'; return; }
+      if (mapReady.value || window.__baliMapLoading) return;
+      window.__baliMapLoading = true;
+      window.__baliMapInit = () => { mapReady.value = true; nextTick(() => renderMap()); };
+      const s = document.createElement('script');
+      s.src = `https://maps.googleapis.com/maps/api/js?key=${keys.maps}&libraries=places&callback=__baliMapInit`;
+      s.onerror = () => { mapErr.value = '地图加载失败，请检查 API Key'; window.__baliMapLoading = false; };
+      document.head.appendChild(s);
+    }
+
+    function renderMap() {
+      const c = document.getElementById('map-canvas');
+      if (!c || !window.google) return;
+      if (!mapInst) {
+        mapInst = new window.google.maps.Map(c, {
+          center:{ lat:-8.4095, lng:115.1889 }, zoom:11,
+          mapTypeControl:false, streetViewControl:false, fullscreenControl:false,
+          styles: dark.value ? DARK_MAP : []
+        });
+        mapInfoWin = new window.google.maps.InfoWindow();
+      }
+      mapMarkers.forEach(m => m.setMap(null)); mapMarkers = [];
+      mapPolylines.forEach(p => p.setMap(null)); mapPolylines = [];
+
+      const day = selDay.value;
+      if (!day) return;
+      const acts = day.activities.filter(a => a.location);
+      const numLabels = ['①','②','③','④','⑤','⑥','⑦','⑧','⑨','⑩'];
+      acts.forEach((a, i) => {
+        const m = TYPE_META[a.type];
+        const mk = new window.google.maps.Marker({
+          position:a.location, map:mapInst,
+          label:{ text: numLabels[i] || `${i+1}`, color:'white', fontWeight:'bold', fontSize:'13px' },
+          title:a.name,
+          icon:{
+            path:window.google.maps.SymbolPath.CIRCLE,
+            fillColor:m.color, fillOpacity:1,
+            strokeColor:'#fff', strokeWeight:2.5, scale:20
+          }
+        });
+        mk.addListener('click', () => {
+          mapInfoWin.setContent(`<div style="font-size:13px;font-weight:600;max-width:160px">${a.name}</div><div style="font-size:11px;color:#6b7280;margin-top:2px">${a.time}${a.address ? ' · ' + a.address : ''}</div>`);
+          mapInfoWin.open(mapInst, mk);
+        });
+        mapMarkers.push(mk);
+      });
+      for (let i = 1; i < acts.length; i++) {
+        mapPolylines.push(new window.google.maps.Polyline({
+          path:[acts[i-1].location, acts[i].location],
+          geodesic:true, strokeColor:'#6366F1', strokeOpacity:0.7, strokeWeight:2.5, map:mapInst
+        }));
+      }
+      if (acts.length) {
+        const b = new window.google.maps.LatLngBounds();
+        acts.forEach(a => b.extend(a.location));
+        mapInst.fitBounds(b, { top:60, right:20, bottom:20, left:20 });
+      }
+    }
+
+    watch(selDayId, () => { if (mapReady.value) nextTick(() => renderMap()); });
+    watch(activeTab, t => { if (t === 'map') nextTick(() => { if (!mapReady.value) initMap(); else renderMap(); }); });
+
+    const DARK_MAP = [
+      { elementType:'geometry', stylers:[{ color:'#212121' }] },
+      { elementType:'labels.text.fill', stylers:[{ color:'#757575' }] },
+      { elementType:'labels.text.stroke', stylers:[{ color:'#212121' }] },
+      { featureType:'road', elementType:'geometry', stylers:[{ color:'#373737' }] },
+      { featureType:'road', elementType:'geometry.stroke', stylers:[{ color:'#212121' }] },
+      { featureType:'water', elementType:'geometry', stylers:[{ color:'#000000' }] },
+      { featureType:'poi', elementType:'geometry', stylers:[{ color:'#2d2d2d' }] }
+    ];
+
+    /* =====================================================
+       SETTINGS
+    ===================================================== */
+    async function doSaveKeys() {
+      await saveKeys(); keysSaved.value = true;
+      setTimeout(() => { keysSaved.value = false; }, 2500);
+      toast('API Keys 已保存', 'success');
+    }
+
+    async function doChangePw() {
+      if (newPw.value.length < 4) { toast('密码至少4位', 'error'); return; }
+      if (newPw.value !== newPw2.value) { toast('两次密码不一致', 'error'); return; }
+      const key = await deriveKey(newPw.value, saltArr.value);
+      masterKey.value = key;
+      await saveTrip(); await saveVersions(); await saveKeys();
+      newPw.value = ''; newPw2.value = ''; showChgPw.value = false;
+      toast('密码已修改', 'success');
+    }
+
+    function toggleDark() {
+      dark.value = !dark.value; applyDark(dark.value);
+      localStorage.setItem('bali_dark', dark.value);
+    }
+
+    function exportJSON() {
+      const blob = new Blob([JSON.stringify(trip, null, 2)], { type:'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.download = `bali-trip-${new Date().toISOString().slice(0,10).replace(/-/g,'')}.json`;
+      a.href = url; a.click(); URL.revokeObjectURL(url);
+      toast('行程已导出', 'success');
+    }
+
+    function importJSON(e) {
+      const f = e.target.files[0]; if (!f) return;
+      const r = new FileReader();
+      r.onload = async (ev) => {
+        try {
+          const data = JSON.parse(ev.target.result);
+          await TOOLS.save_version({ label:'导入前备份' });
+          Object.assign(trip, data);
+          await saveTrip();
+          if (trip.days.length) selDayId.value = trip.days[0].id;
+          toast('行程已导入', 'success');
+        } catch(err) { toast('导入失败: ' + err.message, 'error'); }
+      };
+      r.readAsText(f); e.target.value = '';
+    }
+
+    function selectProv(p) {
+      provider.value = p;
+      const def = PROVIDERS[p].models.find(m => m.def);
+      model.value = def?.id || PROVIDERS[p].models[0].id;
+      localStorage.setItem('bali_provider', p);
+      localStorage.setItem('bali_model', model.value);
+      showProv.value = false; showMdl.value = false;
+    }
+
+    function selectModel(m) {
+      model.value = m;
+      localStorage.setItem('bali_model', m);
+      showMdl.value = false;
+    }
+
+    async function restoreV(vId) {
+      await TOOLS.save_version({ label:'恢复版本前备份' });
+      TOOLS.restore_version({ versionId:vId });
+      showVers.value = false; toast('已恢复到历史版本', 'success');
+    }
+
+    function renderMd(text) {
+      try { return marked.parse(text || '', { breaks:true }); } catch { return text || ''; }
+    }
+
+    /* ---- Expose ---- */
+    return {
+      screen, masterKey, dark, isDark,
+      lockPw, setupPw, setupPw2, lockErr, setupErr, unlocking,
+      showLockPw, showSetupPw,
+      activeTab, trip, versions, messages, chatInput, chatting, webSearch,
+      provider, model, showProv, showMdl, chatEndEl, chatScrollEl, chatInputEl,
+      selDayId, selDay, expandedMap,
+      showEditAct, editAct, ctxAct, ctxDay,
+      showAddDay, addDayDate, addDayTitle,
+      showAddAct, newAct,
+      mapReady, mapErr,
+      browseCat, browseQ, browseCats, filteredActs, allActs,
+      showVers,
+      showChgPw, newPw, newPw2, keys, keysSaved, showKeyVis,
+      toasts, quickChips, showPostChips,
+      PROVIDERS, TYPE_META,
+      formatDate, formatDateShort, formatTs, renderMd, tcArgSummary,
+      // methods
+      doSetup, doUnlock, doLock,
+      sendMessage, stopChat, sendChip, handleEnter,
+      toggleExp,
+      openEditAct, saveEditAct, deleteActUI,
+      doAddDay, doAddAct,
+      toggleDark, exportJSON, importJSON, doSaveKeys, doChangePw,
+      selectProv, selectModel, restoreV,
+      TOOLS
+    };
+  },
+
+  template: `
+<div :class="['min-h-screen', isDark ? 'bg-[#191919] text-[#E3E2DE]' : 'bg-white text-[#37352F]']">
+
+<!-- ═══════════════════════════════════════════ LOCK SCREEN -->
+<div v-if="screen === 'lock'" class="flex flex-col items-center justify-center min-h-screen px-8 safe-top pb-8">
+  <div class="text-6xl mb-5">🏝️</div>
+  <h1 :class="['text-2xl font-bold mb-1.5', isDark ? 'text-white' : 'text-[#37352F]']">巴厘岛旅行规划</h1>
+  <p :class="['text-sm mb-8', isDark ? 'text-gray-400' : 'text-gray-500']">请输入主密码解锁</p>
+  <div class="w-full max-w-[300px] space-y-3">
+    <div class="relative">
+      <input v-model="lockPw" :type="showLockPw ? 'text' : 'password'" placeholder="主密码" @keyup.enter="doUnlock"
+        :class="['w-full px-4 py-3.5 pr-12 rounded-2xl border text-base outline-none transition', isDark ? 'bg-[#2F2F2F] border-gray-600 text-white placeholder-gray-500 focus:border-blue-400' : 'bg-[#F7F6F3] border-gray-200 placeholder-gray-400 focus:border-blue-400']" />
+      <button @click="showLockPw = !showLockPw" class="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 text-lg leading-none">
+        {{ showLockPw ? '🙈' : '👁️' }}
+      </button>
+    </div>
+    <p v-if="lockErr" class="text-red-500 text-sm text-center">{{ lockErr }}</p>
+    <button @click="doUnlock" :disabled="unlocking"
+      class="w-full py-3.5 rounded-2xl bg-blue-500 text-white font-semibold text-base press transition disabled:opacity-60">
+      <span v-if="unlocking" class="flex items-center justify-center gap-2">
+        <svg class="spinner w-4 h-4" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/></svg>
+        解锁中…
+      </span>
+      <span v-else>解锁</span>
+    </button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ SETUP SCREEN -->
+<div v-else-if="screen === 'setup'" class="flex flex-col items-center justify-center min-h-screen px-8 safe-top pb-8">
+  <div class="text-6xl mb-5">🔐</div>
+  <h1 :class="['text-2xl font-bold mb-1.5', isDark ? 'text-white' : 'text-[#37352F]']">设置主密码</h1>
+  <p :class="['text-sm mb-8 text-center leading-relaxed', isDark ? 'text-gray-400' : 'text-gray-500']">用于加密保护您的 API Keys<br>请务必记住此密码</p>
+  <div class="w-full max-w-[300px] space-y-3">
+    <div class="relative">
+      <input v-model="setupPw" :type="showSetupPw ? 'text' : 'password'" placeholder="设置密码（至少4位）"
+        :class="['w-full px-4 py-3.5 pr-12 rounded-2xl border text-base outline-none', isDark ? 'bg-[#2F2F2F] border-gray-600 text-white placeholder-gray-500' : 'bg-[#F7F6F3] border-gray-200 placeholder-gray-400']" />
+      <button @click="showSetupPw = !showSetupPw" class="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 text-lg leading-none">
+        {{ showSetupPw ? '🙈' : '👁️' }}
+      </button>
+    </div>
+    <input v-model="setupPw2" :type="showSetupPw ? 'text' : 'password'" placeholder="确认密码" @keyup.enter="doSetup"
+      :class="['w-full px-4 py-3.5 rounded-2xl border text-base outline-none', isDark ? 'bg-[#2F2F2F] border-gray-600 text-white placeholder-gray-500' : 'bg-[#F7F6F3] border-gray-200 placeholder-gray-400']" />
+    <p v-if="setupErr" class="text-red-500 text-sm text-center">{{ setupErr }}</p>
+    <button @click="doSetup" class="w-full py-3.5 rounded-2xl bg-blue-500 text-white font-semibold text-base press transition">
+      开始使用 🚀
+    </button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ MAIN APP -->
+<div v-else class="flex flex-col h-screen max-h-screen">
+
+  <!-- ── Content ── -->
+  <div class="flex-1 overflow-hidden relative">
+    <transition name="tab" mode="out-in">
+
+      <!-- ══ AI TAB ══ -->
+      <div v-if="activeTab === 'ai'" key="ai" class="absolute inset-0 flex flex-col">
+
+        <!-- Header -->
+        <div :class="['flex items-center gap-2 px-4 border-b safe-top pb-3 flex-shrink-0', isDark ? 'bg-[#191919] border-gray-800' : 'bg-white border-gray-100']">
+          <span class="text-[15px] font-semibold flex-1">🤖 AI 助手</span>
+
+          <!-- Web search toggle -->
+          <button @click="webSearch = !webSearch" :title="webSearch ? '关闭网络搜索' : '开启网络搜索'"
+            :class="['w-8 h-8 rounded-full flex items-center justify-center text-[14px] press-sm transition flex-shrink-0', webSearch ? 'bg-blue-500' : isDark ? 'bg-[#2F2F2F]' : 'bg-[#F7F6F3]']">
+            🌐
+          </button>
+
+          <!-- Provider selector -->
+          <div class="relative">
+            <button @click="showProv = !showProv; showMdl = false"
+              :class="['flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-xs font-medium press-sm transition', isDark ? 'bg-[#2F2F2F] text-gray-200' : 'bg-[#F7F6F3] text-[#37352F]']">
+              {{ PROVIDERS[provider].name }}
+              <svg class="w-3 h-3 opacity-40 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/></svg>
+            </button>
+            <transition name="fade">
+              <div v-if="showProv" :class="['absolute right-0 top-full mt-1.5 w-32 rounded-2xl shadow-xl border overflow-hidden z-50', isDark ? 'bg-[#2F2F2F] border-gray-700' : 'bg-white border-gray-100']">
+                <button v-for="(cfg, key) in PROVIDERS" :key="key" @click="selectProv(key)"
+                  :class="['w-full px-3 py-2.5 text-left text-sm flex items-center justify-between transition', isDark ? 'hover:bg-gray-700/50' : 'hover:bg-gray-50', provider === key ? 'font-semibold text-blue-500' : '']">
+                  {{ cfg.name }}<span v-if="provider === key" class="text-blue-500 text-xs ml-1">✓</span>
+                </button>
+              </div>
+            </transition>
+          </div>
+
+          <!-- Model selector -->
+          <div class="relative">
+            <button @click="showMdl = !showMdl; showProv = false"
+              :class="['flex items-center gap-1 px-2 py-1.5 rounded-xl text-[11px] press-sm transition max-w-[88px]', isDark ? 'bg-[#2F2F2F] text-gray-300' : 'bg-[#F7F6F3] text-gray-600']">
+              <span class="truncate">{{ PROVIDERS[provider].models.find(m => m.id === model)?.label || model }}</span>
+              <svg class="w-3 h-3 flex-shrink-0 opacity-40" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/></svg>
+            </button>
+            <transition name="fade">
+              <div v-if="showMdl" :class="['absolute right-0 top-full mt-1.5 w-52 rounded-2xl shadow-xl border overflow-hidden z-50', isDark ? 'bg-[#2F2F2F] border-gray-700' : 'bg-white border-gray-100']">
+                <button v-for="m in PROVIDERS[provider].models" :key="m.id" @click="selectModel(m.id)"
+                  :class="['w-full px-3 py-2.5 text-left text-sm flex items-center justify-between transition', isDark ? 'hover:bg-gray-700/50' : 'hover:bg-gray-50', model === m.id ? 'text-blue-500 font-semibold' : '']">
+                  {{ m.label }}<span v-if="m.def" class="text-[10px] text-gray-400 ml-1">默认</span>
+                </button>
+              </div>
+            </transition>
+          </div>
+        </div>
+
+        <!-- Messages -->
+        <div ref="chatScrollEl" class="flex-1 scroll-y px-4 py-4 space-y-4" @click="showProv = false; showMdl = false">
+
+          <!-- Empty state -->
+          <div v-if="!messages.length" class="flex flex-col items-center justify-center h-full text-center gap-4 pb-16">
+            <div class="text-6xl">🏝️</div>
+            <div>
+              <h2 :class="['text-lg font-semibold mb-1', isDark ? 'text-gray-100' : 'text-[#37352F]']">开始规划巴厘岛之旅</h2>
+              <p :class="['text-sm leading-relaxed max-w-[240px]', isDark ? 'text-gray-400' : 'text-gray-500']">我可以帮您创建行程、搜索景点、安排餐厅、规划路线</p>
+            </div>
+            <div class="flex flex-wrap gap-2 justify-center">
+              <button v-for="c in quickChips" :key="c" @click="sendChip(c)"
+                :class="['px-3 py-2 rounded-full text-[13px] border press-sm transition', isDark ? 'border-gray-600 text-gray-300 bg-[#2F2F2F]' : 'border-gray-200 text-gray-600 bg-white']">
+                {{ c }}
+              </button>
+            </div>
+          </div>
+
+          <!-- Message list -->
+          <template v-for="(msg, idx) in messages" :key="idx">
+
+            <!-- User message -->
+            <div v-if="msg.role === 'user'" class="flex justify-end">
+              <div class="max-w-[82%] px-4 py-2.5 rounded-2xl rounded-tr-md bg-blue-500 text-white text-[14px] leading-relaxed whitespace-pre-wrap">{{ msg.content }}</div>
+            </div>
+
+            <!-- Assistant message -->
+            <div v-else-if="msg.role === 'assistant' && !msg._skip" class="space-y-2">
+              <!-- Tool call chips -->
+              <div v-if="msg.toolCalls && msg.toolCalls.length" class="flex flex-wrap gap-1.5">
+                <div v-for="tc in msg.toolCalls" :key="tc.id"
+                  :class="['rounded-xl px-3 py-1.5 text-[11px] flex items-center gap-1.5 border max-w-full', isDark ? 'bg-[#2F2F2F] border-gray-700' : 'bg-[#F7F6F3] border-gray-200']">
+                  <span class="text-sm flex-shrink-0">🔧</span>
+                  <span :class="['font-mono font-medium flex-shrink-0', isDark ? 'text-blue-300' : 'text-blue-600']">{{ tc.function.name }}</span>
+                  <span :class="['truncate', isDark ? 'text-gray-500' : 'text-gray-400']" style="max-width:140px">{{ tcArgSummary(tc.function.arguments) }}</span>
+                </div>
+              </div>
+              <!-- Text bubble -->
+              <div v-if="msg.content || msg.isStreaming"
+                :class="['max-w-[92%] px-4 py-3 rounded-2xl rounded-tl-md text-[14px]', isDark ? 'bg-[#2F2F2F]' : 'bg-[#F7F6F3]']">
+                <div v-if="msg.content" class="prose-chat" v-html="renderMd(msg.content)"></div>
+                <div v-else-if="msg.isStreaming" class="flex gap-1.5 items-center py-1">
+                  <span v-for="i in 3" :key="i" :class="['pdot w-2 h-2 rounded-full', isDark ? 'bg-gray-500' : 'bg-gray-400']"></span>
+                </div>
+              </div>
+            </div>
+
+          </template>
+
+          <!-- Post-response quick chips -->
+          <div v-if="showPostChips" class="flex flex-wrap gap-2 pt-1">
+            <button v-for="c in quickChips" :key="c" @click="sendChip(c)"
+              :class="['px-3 py-1.5 rounded-full text-[12px] border press-sm transition', isDark ? 'border-gray-700 text-gray-400 bg-[#2F2F2F]' : 'border-gray-200 text-gray-500 bg-white']">
+              {{ c }}
+            </button>
+          </div>
+
+          <div ref="chatEndEl" class="h-2 w-full"></div>
+        </div>
+
+        <!-- Input bar -->
+        <div :class="['border-t px-3 py-2.5 pb-safe flex-shrink-0', isDark ? 'bg-[#191919] border-gray-800' : 'bg-white border-gray-100']">
+          <div class="flex items-end gap-2">
+            <div :class="['flex-1 flex items-end gap-2 rounded-2xl border px-3 py-2.5 transition', isDark ? 'bg-[#2F2F2F] border-gray-700 focus-within:border-blue-500' : 'bg-[#F7F6F3] border-gray-200 focus-within:border-blue-400']">
+              <textarea ref="chatInputEl" v-model="chatInput"
+                @keydown.enter.exact="handleEnter"
+                placeholder="发消息给 AI 助手…"
+                rows="1"
+                :class="['flex-1 bg-transparent text-[14px] outline-none resize-none leading-5 max-h-32 min-h-5', isDark ? 'text-white placeholder-gray-500' : 'text-[#37352F] placeholder-gray-400']"
+                @input="e => { e.target.style.height='auto'; e.target.style.height=Math.min(e.target.scrollHeight, 128)+'px'; }"></textarea>
+              <button v-if="chatting" @click="stopChat"
+                class="flex-shrink-0 w-7 h-7 rounded-full bg-red-500 text-white flex items-center justify-center font-bold press-sm" style="font-size:10px">■</button>
+              <button v-else @click="sendMessage" :disabled="!chatInput.trim()"
+                :class="['flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center press-sm transition', chatInput.trim() ? 'bg-blue-500 text-white' : isDark ? 'bg-gray-700 text-gray-500' : 'bg-gray-200 text-gray-400']">
+                <svg class="w-3.5 h-3.5" style="transform:rotate(90deg)" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 19V5m-7 7l7-7 7 7"/></svg>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ TIMELINE TAB ══ -->
+      <div v-else-if="activeTab === 'timeline'" key="timeline" class="absolute inset-0 flex flex-col">
+
+        <!-- Header -->
+        <div :class="['border-b safe-top px-4 pb-3 flex-shrink-0', isDark ? 'bg-[#191919] border-gray-800' : 'bg-white border-gray-100']">
+          <div class="flex items-center justify-between mb-3">
+            <h1 class="text-[15px] font-semibold">📅 行程时间线</h1>
+            <button @click="showAddDay = true"
+              :class="['text-[12px] px-3 py-1.5 rounded-xl font-medium press-sm transition', isDark ? 'bg-blue-600 text-white' : 'bg-blue-500 text-white']">
+              + 添加一天
+            </button>
+          </div>
+          <!-- Day chips -->
+          <div class="scroll-x flex gap-2 pb-0.5">
+            <div v-if="!trip.days.length" :class="['flex-shrink-0 px-4 py-2 rounded-xl text-xs', isDark ? 'bg-[#2F2F2F] text-gray-500' : 'bg-[#F7F6F3] text-gray-400']">暂无行程</div>
+            <button v-for="day in trip.days" :key="day.id" @click="selDayId = day.id"
+              :class="['flex-shrink-0 px-3 py-2 rounded-xl text-xs font-medium text-center press-sm transition min-w-[70px]',
+                selDayId === day.id
+                  ? 'bg-blue-500 text-white shadow-sm shadow-blue-200'
+                  : isDark ? 'bg-[#2F2F2F] text-gray-300' : 'bg-[#F7F6F3] text-[#37352F]']">
+              <div>{{ formatDateShort(day.date) }}</div>
+              <div class="opacity-70 mt-0.5 text-[10px] truncate max-w-[64px]">{{ day.title }}</div>
+            </button>
+          </div>
+        </div>
+
+        <!-- Timeline content -->
+        <div class="flex-1 scroll-y px-4 py-5">
+
+          <!-- No days empty state -->
+          <div v-if="!trip.days.length" class="flex flex-col items-center justify-center h-full text-center gap-3">
+            <div class="text-4xl">🗓️</div>
+            <p :class="['text-[13px] font-medium', isDark ? 'text-gray-300' : 'text-[#37352F]']">还没有行程安排</p>
+            <p :class="['text-[12px]', isDark ? 'text-gray-500' : 'text-gray-400']">点击「+ 添加一天」开始，或让 AI 帮你规划</p>
+            <button @click="activeTab = 'ai'" class="mt-1 text-blue-500 text-[13px] font-medium press-sm">让 AI 帮你规划 →</button>
+          </div>
+
+          <!-- Selected day view -->
+          <div v-else-if="selDay">
+            <div class="flex items-start justify-between mb-5">
+              <div>
+                <h2 class="font-semibold text-[15px]">{{ selDay.title }}</h2>
+                <p :class="['text-[12px] mt-0.5', isDark ? 'text-gray-400' : 'text-gray-500']">{{ formatDate(selDay.date) }}</p>
+              </div>
+              <button @click="showAddAct = true"
+                :class="['text-[12px] px-3 py-1.5 rounded-xl font-medium press-sm border transition',
+                  isDark ? 'border-gray-700 text-gray-200 bg-[#2F2F2F]' : 'border-gray-200 text-[#37352F] bg-white']">
+                + 活动
+              </button>
+            </div>
+
+            <!-- Empty day -->
+            <div v-if="!selDay.activities.length" class="text-center py-14">
+              <div class="text-3xl mb-2.5">✨</div>
+              <p :class="['text-[13px]', isDark ? 'text-gray-400' : 'text-gray-500']">还没有活动安排</p>
+              <p :class="['text-[12px] mt-1', isDark ? 'text-gray-600' : 'text-gray-400']">点击右上角「+ 活动」或让 AI 规划</p>
+            </div>
+
+            <!-- Activities timeline -->
+            <div v-else class="relative">
+              <!-- Vertical spine -->
+              <div :class="['absolute w-0.5 top-5 bottom-5', isDark ? 'bg-gray-700/60' : 'bg-gray-200']" style="left:27px"></div>
+
+              <div v-for="(act, i) in selDay.activities" :key="act.id" class="relative pl-14 mb-3">
+
+                <!-- Travel connector -->
+                <div v-if="act.travelFromPrev && i > 0"
+                  :class="['flex items-center gap-1.5 text-[11px] mb-2.5 -ml-3', isDark ? 'text-gray-600' : 'text-gray-400']">
+                  <span>{{ act.travelFromPrev.mode === 'driving' ? '🚗' : act.travelFromPrev.mode === 'walking' ? '🚶' : '🚌' }}</span>
+                  <span>{{ act.travelFromPrev.duration }}</span>
+                  <span v-if="act.travelFromPrev.distance" class="opacity-60">· {{ act.travelFromPrev.distance }}</span>
+                </div>
+
+                <!-- Timeline dot -->
+                <div class="t-dot" :style="{
+                  backgroundColor: TYPE_META[act.type]?.color || '#6B7280',
+                  borderColor: isDark ? '#191919' : '#ffffff',
+                  top: '14px', left: '20px'
+                }"></div>
+
+                <!-- Time label -->
+                <div :class="['absolute text-[11px] font-medium text-center', isDark ? 'text-gray-500' : 'text-gray-400']"
+                  style="left:0; width:40px; top:12px">
+                  {{ act.time }}
+                </div>
+
+                <!-- Activity card -->
+                <div @click="toggleExp(act.id)" @contextmenu.prevent="ctxAct = act; ctxDay = selDay"
+                  :class="['rounded-2xl border press transition cursor-pointer',
+                    isDark ? 'bg-[#242424] border-gray-700/60' : 'bg-white border-gray-100 shadow-sm']">
+
+                  <!-- Card header -->
+                  <div class="px-3.5 py-3">
+                    <div class="flex items-start gap-2.5">
+                      <span class="text-xl leading-none mt-0.5 flex-shrink-0">{{ TYPE_META[act.type]?.icon }}</span>
+                      <div class="flex-1 min-w-0">
+                        <div class="flex items-center gap-2 flex-wrap">
+                          <span class="font-medium text-[13px] leading-snug">{{ act.name }}</span>
+                          <span v-if="act.googleInfo?.rating" class="text-[11px] text-amber-500 flex-shrink-0">⭐ {{ act.googleInfo.rating }}</span>
+                          <span v-if="act.reservation?.required" :class="['text-[10px] px-1.5 py-0.5 rounded-full flex-shrink-0 font-medium', isDark ? 'bg-red-900/40 text-red-400' : 'bg-red-50 text-red-500']">需预订</span>
+                        </div>
+                        <div :class="['text-[11px] mt-0.5 leading-relaxed', isDark ? 'text-gray-500' : 'text-gray-400']">
+                          {{ act.time }}{{ act.endTime ? ' – ' + act.endTime : '' }}
+                          <span v-if="act.address" class="truncate"> · {{ act.address }}</span>
+                        </div>
+                      </div>
+                      <svg :class="['chev w-4 h-4 flex-shrink-0 mt-0.5 transition-transform', expandedMap[act.id] ? 'open' : '', isDark ? 'text-gray-600' : 'text-gray-300']"
+                        fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                      </svg>
+                    </div>
+                  </div>
+
+                  <!-- Expanded details -->
+                  <div v-if="expandedMap[act.id]" :class="['border-t px-3.5 py-3 space-y-3', isDark ? 'border-gray-700/60' : 'border-gray-100']">
+
+                    <!-- Notes -->
+                    <p v-if="act.notes" :class="['text-[13px] leading-relaxed', isDark ? 'text-gray-300' : 'text-[#37352F]']">{{ act.notes }}</p>
+
+                    <!-- Google info -->
+                    <div v-if="act.googleInfo" :class="['rounded-xl p-3 text-[12px] space-y-1.5', isDark ? 'bg-[#191919]' : 'bg-[#F7F6F3]']">
+                      <div :class="['font-semibold text-[11px] uppercase tracking-wide', isDark ? 'text-blue-400' : 'text-blue-500']">Google 信息</div>
+                      <div v-if="act.googleInfo.rating" class="flex gap-3 items-center flex-wrap">
+                        <span>⭐ {{ act.googleInfo.rating }}/5</span>
+                        <span v-if="act.googleInfo.reviewCount" :class="isDark ? 'text-gray-400' : 'text-gray-500'">{{ act.googleInfo.reviewCount }} 条评价</span>
+                        <span v-if="act.googleInfo.openNow !== undefined" :class="act.googleInfo.openNow ? 'text-green-500' : 'text-red-400'">
+                          {{ act.googleInfo.openNow ? '● 营业中' : '● 已关闭' }}
+                        </span>
+                        <span v-if="act.googleInfo.priceLevel" :class="isDark ? 'text-gray-400' : 'text-gray-500'">{{ '¥'.repeat(act.googleInfo.priceLevel) }}</span>
+                      </div>
+                      <div v-if="act.googleInfo.hours" :class="['flex items-start gap-1.5', isDark ? 'text-gray-400' : 'text-gray-500']">
+                        <span class="flex-shrink-0">🕐</span><span>{{ act.googleInfo.hours }}</span>
+                      </div>
+                      <div v-if="act.googleInfo.phone" :class="isDark ? 'text-gray-400' : 'text-gray-600'">📞 {{ act.googleInfo.phone }}</div>
+                      <a v-if="act.googleInfo.website" :href="act.googleInfo.website" target="_blank" class="text-blue-400 flex items-center gap-1">🌐 <span class="underline">官网</span></a>
+                    </div>
+
+                    <!-- Xiaohongshu info -->
+                    <div v-if="act.xiaohongshu" :class="['rounded-xl p-3 text-[12px] space-y-2', isDark ? 'bg-[#191919]' : 'bg-[#FFF1F2]']">
+                      <div class="font-semibold text-[11px] uppercase tracking-wide text-rose-500">📕 小红书推荐</div>
+                      <p v-if="act.xiaohongshu.summary" :class="['leading-relaxed', isDark ? 'text-gray-300' : 'text-gray-700']">{{ act.xiaohongshu.summary }}</p>
+                      <div v-if="act.xiaohongshu.highlights?.length" class="flex flex-wrap gap-1.5">
+                        <span v-for="h in act.xiaohongshu.highlights" :key="h" :class="['px-2 py-0.5 rounded-full text-[11px]', isDark ? 'bg-rose-900/30 text-rose-300' : 'bg-rose-50 text-rose-600']">{{ h }}</span>
+                      </div>
+                      <div v-if="act.xiaohongshu.posts?.length" class="space-y-1">
+                        <a v-for="p in act.xiaohongshu.posts" :key="p.url || p.title" :href="p.url" target="_blank" class="text-rose-400 underline block truncate">{{ p.title || '查看帖子' }}</a>
+                      </div>
+                      <a v-if="act.xiaohongshu.searchUrl" :href="act.xiaohongshu.searchUrl" target="_blank" class="text-rose-400 text-[11px] block mt-1">搜索更多 →</a>
+                    </div>
+
+                    <!-- Instagram info -->
+                    <div v-if="act.instagram" :class="['rounded-xl p-3 text-[12px] space-y-2', isDark ? 'bg-[#191919]' : 'bg-[#FDF4FF]']">
+                      <div class="font-semibold text-[11px] uppercase tracking-wide text-purple-500">📷 Instagram</div>
+                      <p v-if="act.instagram.summary" :class="['leading-relaxed', isDark ? 'text-gray-300' : 'text-gray-700']">{{ act.instagram.summary }}</p>
+                      <div v-if="act.instagram.hashtags?.length" class="flex flex-wrap gap-1.5">
+                        <span v-for="tag in act.instagram.hashtags" :key="tag" :class="['px-2 py-0.5 rounded-full text-[11px]', isDark ? 'bg-purple-900/30 text-purple-300' : 'bg-purple-50 text-purple-600']">#{{ tag }}</span>
+                      </div>
+                      <div v-if="act.instagram.posts?.length" class="space-y-1">
+                        <a v-for="p in act.instagram.posts" :key="p.url" :href="p.url" target="_blank" class="text-purple-400 underline block truncate">{{ p.description || '查看帖子' }}</a>
+                      </div>
+                      <a v-if="act.instagram.searchUrl" :href="act.instagram.searchUrl" target="_blank" class="text-purple-400 text-[11px] block mt-1">搜索更多 →</a>
+                    </div>
+
+                    <!-- Reservation -->
+                    <div v-if="act.reservation?.required" :class="['rounded-xl p-3 text-[12px]', isDark ? 'bg-[#191919]' : 'bg-[#FFF7ED]']">
+                      <div class="font-semibold text-[11px] uppercase tracking-wide text-orange-500 mb-1.5">预订信息</div>
+                      <div v-if="act.reservation.urgency" class="text-orange-500 flex items-center gap-1.5"><span>⏰</span>{{ act.reservation.urgency }}</div>
+                      <div v-if="act.reservation.tip" :class="['mt-1.5 leading-relaxed', isDark ? 'text-gray-300' : 'text-gray-700']">💡 {{ act.reservation.tip }}</div>
+                      <div v-if="act.reservation.links?.length" class="flex gap-2 mt-2 flex-wrap">
+                        <a v-for="l in act.reservation.links" :key="l.url || l" :href="l.url || l" target="_blank"
+                          class="text-blue-500 underline text-[12px]">{{ l.platform || l }}</a>
+                      </div>
+                    </div>
+
+                    <!-- Actions -->
+                    <div class="flex gap-2">
+                      <button @click.stop="openEditAct(act)"
+                        :class="['flex-1 py-2.5 rounded-xl text-[12px] font-medium transition press-sm', isDark ? 'bg-[#191919] text-gray-200' : 'bg-[#F7F6F3] text-[#37352F]']">
+                        ✏️ 编辑
+                      </button>
+                      <button @click.stop="deleteActUI(act.id)"
+                        :class="['flex-1 py-2.5 rounded-xl text-[12px] font-medium press-sm transition', isDark ? 'bg-red-900/30 text-red-400' : 'bg-red-50 text-red-500']">
+                        🗑️ 删除
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ MAP TAB ══ -->
+      <div v-else-if="activeTab === 'map'" key="map" class="absolute inset-0 flex flex-col">
+
+        <!-- Header with day chips -->
+        <div :class="['border-b safe-top px-4 pb-3 flex-shrink-0', isDark ? 'bg-[#191919] border-gray-800' : 'bg-white border-gray-100']">
+          <div class="flex items-center justify-between mb-2.5">
+            <h1 class="text-[15px] font-semibold">🗺️ 地图视图</h1>
+            <span v-if="selDay" :class="['text-[12px]', isDark ? 'text-gray-400' : 'text-gray-500']">
+              {{ selDay.activities.filter(a => a.location).length }} 个地点
+            </span>
+          </div>
+          <!-- Day selector chips -->
+          <div v-if="trip.days.length" class="scroll-x flex gap-2 pb-0.5">
+            <button v-for="day in trip.days" :key="day.id" @click="selDayId = day.id"
+              :class="['flex-shrink-0 px-3 py-1.5 rounded-full text-[12px] font-medium press-sm transition',
+                selDayId === day.id
+                  ? 'bg-blue-500 text-white'
+                  : isDark ? 'bg-[#2F2F2F] text-gray-300' : 'bg-[#F7F6F3] text-[#37352F]']">
+              {{ formatDateShort(day.date) }}
+            </button>
+          </div>
+        </div>
+
+        <div class="flex-1 relative overflow-hidden">
+          <!-- No key placeholder -->
+          <div v-if="mapErr && !mapReady" class="flex flex-col items-center justify-center h-full text-center px-8 gap-3">
+            <div class="text-5xl">🗺️</div>
+            <p :class="['text-[13px] leading-relaxed max-w-[240px]', isDark ? 'text-gray-400' : 'text-gray-500']">{{ mapErr }}</p>
+            <button @click="activeTab = 'more'" class="text-blue-500 text-[13px] font-medium press-sm">前往设置 →</button>
+          </div>
+          <!-- Loading -->
+          <div v-else-if="!mapReady && !mapErr" class="flex flex-col items-center justify-center h-full gap-3">
+            <svg class="spinner w-8 h-8 text-blue-500" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/></svg>
+            <p :class="['text-[13px]', isDark ? 'text-gray-400' : 'text-gray-500']">地图加载中…</p>
+          </div>
+          <!-- Map canvas - always rendered to allow Google Maps to mount -->
+          <div id="map-canvas" class="absolute inset-0" :class="{ 'opacity-0 pointer-events-none': !mapReady }"></div>
+          <!-- No activities hint overlay -->
+          <div v-if="mapReady && selDay && !selDay.activities.filter(a => a.location).length"
+            class="absolute bottom-4 left-4 right-4 pointer-events-none">
+            <div :class="['rounded-2xl px-4 py-3 text-center text-[12px]', isDark ? 'bg-[#2F2F2F]/90 text-gray-400' : 'bg-white/90 text-gray-500']">
+              当天活动暂无坐标信息，让 AI 添加地点后可显示路线
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ BROWSE TAB ══ -->
+      <div v-else-if="activeTab === 'browse'" key="browse" class="absolute inset-0 flex flex-col">
+
+        <!-- Header -->
+        <div :class="['border-b safe-top px-4 pb-3 flex-shrink-0', isDark ? 'bg-[#191919] border-gray-800' : 'bg-white border-gray-100']">
+          <div class="flex items-center justify-between mb-3">
+            <h1 class="text-[15px] font-semibold">🍜 浏览行程</h1>
+            <div class="flex gap-1.5">
+              <button @click="exportJSON" :class="['text-[11px] px-2.5 py-1.5 rounded-lg border font-medium press-sm transition', isDark ? 'border-gray-700 text-gray-300' : 'border-gray-200 text-gray-600']">⬇ 导出</button>
+              <label :class="['text-[11px] px-2.5 py-1.5 rounded-lg border font-medium press-sm transition cursor-pointer', isDark ? 'border-gray-700 text-gray-300' : 'border-gray-200 text-gray-600']">
+                ⬆ 导入<input type="file" accept=".json" class="hidden" @change="importJSON" />
+              </label>
+            </div>
+          </div>
+          <!-- Search input -->
+          <input v-model="browseQ" type="search" placeholder="搜索地点名称…"
+            :class="['w-full px-3.5 py-2.5 rounded-xl text-[13px] border outline-none mb-3', isDark ? 'bg-[#2F2F2F] border-gray-700 text-white placeholder-gray-500' : 'bg-[#F7F6F3] border-gray-200 placeholder-gray-400']" />
+          <!-- Category pills -->
+          <div class="scroll-x flex gap-1.5 pb-0.5">
+            <button v-for="cat in browseCats" :key="cat" @click="browseCat = cat"
+              :class="['flex-shrink-0 px-3 py-1.5 rounded-full text-[12px] font-medium press-sm transition',
+                browseCat === cat ? 'bg-blue-500 text-white' : isDark ? 'bg-[#2F2F2F] text-gray-300' : 'bg-[#F7F6F3] text-[#37352F]']">
+              {{ cat }}
+            </button>
+          </div>
+        </div>
+
+        <!-- Content -->
+        <div class="flex-1 scroll-y px-4 py-4">
+
+          <!-- Tips view -->
+          <div v-if="browseCat === '小贴士'">
+            <div v-if="!trip.tips.length" class="text-center py-16">
+              <div class="text-4xl mb-3">💡</div>
+              <p :class="['text-[13px]', isDark ? 'text-gray-400' : 'text-gray-500']">暂无旅行提示</p>
+              <p :class="['text-[12px] mt-1', isDark ? 'text-gray-600' : 'text-gray-400']">让 AI 添加当地实用小贴士</p>
+            </div>
+            <div v-for="tip in trip.tips" :key="tip.id"
+              :class="['rounded-2xl p-4 mb-3 flex gap-3', isDark ? 'bg-[#242424] border border-gray-700/60' : 'bg-white border border-gray-100 shadow-sm']">
+              <span class="text-xl flex-shrink-0 mt-0.5">💡</span>
+              <div class="flex-1 min-w-0">
+                <div :class="['text-[11px] font-semibold mb-1.5 uppercase tracking-wide', isDark ? 'text-blue-400' : 'text-blue-500']">{{ tip.category }}</div>
+                <p :class="['text-[13px] leading-relaxed', isDark ? 'text-gray-300' : 'text-[#37352F]']">{{ tip.content }}</p>
+              </div>
+              <button @click="TOOLS.delete_tip({ tipId: tip.id })" :class="['text-sm press-sm flex-shrink-0 self-start mt-0.5', isDark ? 'text-gray-600' : 'text-gray-300']">✕</button>
+            </div>
+          </div>
+
+          <!-- Activities grid -->
+          <div v-else>
+            <div v-if="!filteredActs.length" class="text-center py-16">
+              <div class="text-4xl mb-3">{{ browseQ ? '🔍' : '🗺️' }}</div>
+              <p :class="['text-[13px]', isDark ? 'text-gray-400' : 'text-gray-500']">{{ browseQ ? '没有找到匹配的结果' : '暂无相关活动' }}</p>
+            </div>
+            <div v-for="act in filteredActs" :key="act.id"
+              :class="['rounded-2xl border p-3.5 mb-3', isDark ? 'bg-[#242424] border-gray-700/60' : 'bg-white border-gray-100 shadow-sm']">
+              <div class="flex gap-3">
+                <div class="flex-shrink-0 w-10 h-10 rounded-xl flex items-center justify-center text-xl"
+                  :style="{ background: TYPE_META[act.type]?.bg || '#F7F6F3' }">
+                  {{ TYPE_META[act.type]?.icon }}
+                </div>
+                <div class="flex-1 min-w-0">
+                  <div class="flex items-center gap-2 flex-wrap mb-0.5">
+                    <span class="font-medium text-[13px]">{{ act.name }}</span>
+                    <span v-if="act.googleInfo?.rating" class="text-[11px] text-amber-500 flex-shrink-0">⭐ {{ act.googleInfo.rating }}</span>
+                    <span v-if="act.reservation?.required" :class="['text-[10px] px-1.5 py-0.5 rounded-full font-medium flex-shrink-0', isDark ? 'bg-red-900/30 text-red-400' : 'bg-red-50 text-red-500']">需预订</span>
+                  </div>
+                  <div :class="['text-[11px]', isDark ? 'text-gray-500' : 'text-gray-400']">
+                    {{ act.dayDate ? formatDate(act.dayDate) : '' }} · {{ act.time }}
+                    <span v-if="act.address"> · {{ act.address }}</span>
+                  </div>
+                  <p v-if="act.notes" :class="['text-[12px] mt-1.5 line-clamp-2 leading-relaxed', isDark ? 'text-gray-400' : 'text-gray-500']">{{ act.notes }}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ MORE / SETTINGS TAB ══ -->
+      <div v-else-if="activeTab === 'more'" key="more" class="absolute inset-0 flex flex-col">
+        <div :class="['border-b safe-top px-4 pb-3 flex-shrink-0', isDark ? 'bg-[#191919] border-gray-800' : 'bg-white border-gray-100']">
+          <h1 class="text-[15px] font-semibold">⚙️ 设置</h1>
+        </div>
+        <div class="flex-1 scroll-y px-4 py-4 space-y-4 pb-safe">
+
+          <!-- Trip summary -->
+          <div :class="['rounded-2xl border overflow-hidden', isDark ? 'border-gray-800' : 'border-gray-100']">
+            <div :class="['px-4 py-2 text-[10px] font-bold uppercase tracking-wider', isDark ? 'bg-[#2A2A2A] text-gray-500' : 'bg-[#F7F6F3] text-gray-400']">当前行程</div>
+            <div :class="['px-4 py-3.5', isDark ? 'bg-[#1e1e1e]' : 'bg-white']">
+              <div v-if="trip.name">
+                <p class="font-semibold text-[14px]">{{ trip.name }}</p>
+                <p :class="['text-[12px] mt-1', isDark ? 'text-gray-400' : 'text-gray-500']">
+                  {{ trip.destination }} · {{ trip.days.length }} 天 · {{ allActs.length }} 个活动
+                </p>
+                <p v-if="trip.startDate" :class="['text-[12px] mt-0.5', isDark ? 'text-gray-500' : 'text-gray-400']">
+                  {{ formatDate(trip.startDate) }} — {{ formatDate(trip.endDate) }}
+                </p>
+              </div>
+              <p v-else :class="['text-[13px]', isDark ? 'text-gray-500' : 'text-gray-400']">尚未创建行程，和 AI 对话开始规划吧</p>
+            </div>
+          </div>
+
+          <!-- AI Provider & Model -->
+          <div :class="['rounded-2xl border overflow-hidden', isDark ? 'border-gray-800' : 'border-gray-100']">
+            <div :class="['px-4 py-2 text-[10px] font-bold uppercase tracking-wider', isDark ? 'bg-[#2A2A2A] text-gray-500' : 'bg-[#F7F6F3] text-gray-400']">AI 提供商</div>
+            <div :class="['px-4 py-3.5', isDark ? 'bg-[#1e1e1e]' : 'bg-white']">
+              <div class="grid grid-cols-2 gap-2 mb-2">
+                <div>
+                  <label :class="['text-[11px] font-semibold block mb-1.5', isDark ? 'text-gray-400' : 'text-gray-500']">提供商</label>
+                  <select :value="provider" @change="selectProv($event.target.value)"
+                    :class="['w-full px-3 py-2.5 rounded-xl border text-[13px] outline-none', isDark ? 'bg-[#2F2F2F] border-gray-700 text-white' : 'bg-[#F7F6F3] border-gray-200 text-[#37352F]']">
+                    <option v-for="(cfg, key) in PROVIDERS" :key="key" :value="key">{{ cfg.name }}</option>
+                  </select>
+                </div>
+                <div>
+                  <label :class="['text-[11px] font-semibold block mb-1.5', isDark ? 'text-gray-400' : 'text-gray-500']">模型</label>
+                  <select :value="model" @change="selectModel($event.target.value)"
+                    :class="['w-full px-3 py-2.5 rounded-xl border text-[13px] outline-none', isDark ? 'bg-[#2F2F2F] border-gray-700 text-white' : 'bg-[#F7F6F3] border-gray-200 text-[#37352F]']">
+                    <option v-for="m in PROVIDERS[provider].models" :key="m.id" :value="m.id">{{ m.label }}</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- API Keys -->
+          <div :class="['rounded-2xl border overflow-hidden', isDark ? 'border-gray-800' : 'border-gray-100']">
+            <div :class="['px-4 py-2 text-[10px] font-bold uppercase tracking-wider', isDark ? 'bg-[#2A2A2A] text-gray-500' : 'bg-[#F7F6F3] text-gray-400']">API Keys（加密存储）</div>
+            <div :class="['divide-y', isDark ? 'divide-gray-800' : 'divide-gray-100']">
+              <div v-for="(cfg, key) in PROVIDERS" :key="key" :class="['px-4 py-3', isDark ? 'bg-[#1e1e1e]' : 'bg-white']">
+                <label :class="['text-[11px] font-semibold block mb-1.5', isDark ? 'text-gray-400' : 'text-gray-500']">{{ cfg.name }}</label>
+                <div class="relative">
+                  <input v-model="keys[key]" :type="showKeyVis[key] ? 'text' : 'password'" :placeholder="cfg.name + ' API Key'"
+                    :class="['w-full px-3 py-2.5 pr-10 rounded-xl text-[13px] border outline-none transition', isDark ? 'bg-[#2F2F2F] border-gray-700 text-white placeholder-gray-600' : 'bg-[#F7F6F3] border-gray-200 placeholder-gray-400']" />
+                  <button @click="showKeyVis[key] = !showKeyVis[key]"
+                    :class="['absolute right-2.5 top-1/2 -translate-y-1/2 text-base leading-none', isDark ? 'text-gray-600' : 'text-gray-300']">
+                    {{ showKeyVis[key] ? '🙈' : '👁️' }}
+                  </button>
+                </div>
+              </div>
+              <div :class="['px-4 py-3', isDark ? 'bg-[#1e1e1e]' : 'bg-white']">
+                <label :class="['text-[11px] font-semibold block mb-1.5', isDark ? 'text-gray-400' : 'text-gray-500']">Google Maps</label>
+                <div class="relative">
+                  <input v-model="keys.maps" :type="showKeyVis.maps ? 'text' : 'password'" placeholder="Google Maps API Key"
+                    :class="['w-full px-3 py-2.5 pr-10 rounded-xl text-[13px] border outline-none', isDark ? 'bg-[#2F2F2F] border-gray-700 text-white placeholder-gray-600' : 'bg-[#F7F6F3] border-gray-200 placeholder-gray-400']" />
+                  <button @click="showKeyVis.maps = !showKeyVis.maps"
+                    :class="['absolute right-2.5 top-1/2 -translate-y-1/2 text-base leading-none', isDark ? 'text-gray-600' : 'text-gray-300']">
+                    {{ showKeyVis.maps ? '🙈' : '👁️' }}
+                  </button>
+                </div>
+              </div>
+              <div :class="['px-4 py-3', isDark ? 'bg-[#1e1e1e]' : 'bg-white']">
+                <button @click="doSaveKeys"
+                  :class="['w-full py-3 rounded-xl text-[13px] font-semibold press transition', keysSaved ? 'bg-green-500 text-white' : 'bg-blue-500 text-white']">
+                  {{ keysSaved ? '✓ 已保存' : '保存 API Keys' }}
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Appearance -->
+          <div :class="['rounded-2xl border overflow-hidden', isDark ? 'border-gray-800' : 'border-gray-100']">
+            <div :class="['px-4 py-2 text-[10px] font-bold uppercase tracking-wider', isDark ? 'bg-[#2A2A2A] text-gray-500' : 'bg-[#F7F6F3] text-gray-400']">外观</div>
+            <div :class="['px-4 py-4 flex items-center justify-between', isDark ? 'bg-[#1e1e1e]' : 'bg-white']">
+              <div>
+                <span class="text-[14px] font-medium">深色模式</span>
+                <p :class="['text-[11px] mt-0.5', isDark ? 'text-gray-500' : 'text-gray-400']">{{ isDark ? '当前：深色' : '当前：浅色' }}</p>
+              </div>
+              <button @click="toggleDark"
+                :class="['relative press-sm transition-colors flex-shrink-0', isDark ? 'bg-blue-500' : 'bg-gray-200']"
+                style="width:48px; height:28px; border-radius:14px;">
+                <span :class="['absolute top-1 w-5 h-5 rounded-full bg-white shadow-sm transition-all duration-200', isDark ? 'left-[26px]' : 'left-1']"></span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Data management -->
+          <div :class="['rounded-2xl border overflow-hidden', isDark ? 'border-gray-800' : 'border-gray-100']">
+            <div :class="['px-4 py-2 text-[10px] font-bold uppercase tracking-wider', isDark ? 'bg-[#2A2A2A] text-gray-500' : 'bg-[#F7F6F3] text-gray-400']">数据管理</div>
+            <div :class="['divide-y', isDark ? 'divide-gray-800' : 'divide-gray-100']">
+              <div :class="['px-4 py-3.5 flex items-center justify-between', isDark ? 'bg-[#1e1e1e]' : 'bg-white']">
+                <button @click="showVers = true" class="text-blue-500 text-[13px] flex items-center gap-2 press-sm">
+                  📋 版本历史
+                </button>
+                <span :class="['text-[12px]', isDark ? 'text-gray-600' : 'text-gray-400']">{{ versions.length }} 个版本</span>
+              </div>
+              <div :class="['px-4 py-3.5', isDark ? 'bg-[#1e1e1e]' : 'bg-white']">
+                <button @click="exportJSON" class="text-blue-500 text-[13px] press-sm w-full text-left">⬇️ 导出行程 JSON</button>
+              </div>
+              <div :class="['px-4 py-3.5', isDark ? 'bg-[#1e1e1e]' : 'bg-white']">
+                <label class="text-blue-500 text-[13px] cursor-pointer block press-sm">
+                  ⬆️ 导入行程 JSON
+                  <input type="file" accept=".json" class="hidden" @change="importJSON" />
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <!-- Security -->
+          <div :class="['rounded-2xl border overflow-hidden', isDark ? 'border-gray-800' : 'border-gray-100']">
+            <div :class="['px-4 py-2 text-[10px] font-bold uppercase tracking-wider', isDark ? 'bg-[#2A2A2A] text-gray-500' : 'bg-[#F7F6F3] text-gray-400']">安全</div>
+            <div :class="['divide-y', isDark ? 'divide-gray-800' : 'divide-gray-100']">
+              <div :class="['px-4 py-3.5', isDark ? 'bg-[#1e1e1e]' : 'bg-white']">
+                <button @click="showChgPw = !showChgPw" class="text-blue-500 text-[13px] press-sm w-full text-left">
+                  🔑 修改主密码
+                </button>
+                <div v-if="showChgPw" class="mt-3 space-y-2">
+                  <input v-model="newPw" type="password" placeholder="新密码（至少4位）"
+                    :class="['w-full px-3 py-2.5 rounded-xl text-[13px] border outline-none', isDark ? 'bg-[#2F2F2F] border-gray-700 text-white' : 'bg-[#F7F6F3] border-gray-200']" />
+                  <input v-model="newPw2" type="password" placeholder="确认新密码"
+                    :class="['w-full px-3 py-2.5 rounded-xl text-[13px] border outline-none', isDark ? 'bg-[#2F2F2F] border-gray-700 text-white' : 'bg-[#F7F6F3] border-gray-200']" />
+                  <button @click="doChangePw" class="w-full py-2.5 rounded-xl bg-blue-500 text-white text-[13px] font-semibold press">确认修改</button>
+                </div>
+              </div>
+              <div :class="['px-4 py-3.5', isDark ? 'bg-[#1e1e1e]' : 'bg-white']">
+                <button @click="doLock" class="text-red-500 text-[13px] press-sm w-full text-left">🔒 锁定应用</button>
+              </div>
+            </div>
+          </div>
+
+          <p :class="['text-center text-[11px] pb-8 mt-2', isDark ? 'text-gray-700' : 'text-gray-300']">巴厘岛旅行规划 · 数据本地加密存储</p>
+        </div>
+      </div>
+
+    </transition>
+  </div>
+
+  <!-- ── Bottom Tab Bar ── -->
+  <div :class="['border-t pb-safe flex-shrink-0', isDark ? 'bg-[#191919] border-gray-800' : 'bg-white border-gray-100']">
+    <div class="flex">
+      <button v-for="t in [{id:'ai',icon:'🤖',label:'AI'},{id:'timeline',icon:'📅',label:'时间线'},{id:'map',icon:'🗺️',label:'地图'},{id:'browse',icon:'🍜',label:'浏览'},{id:'more',icon:'⚙️',label:'设置'}]"
+        :key="t.id" @click="activeTab = t.id"
+        :class="['flex-1 flex flex-col items-center pt-2.5 pb-1.5 transition press-sm relative',
+          activeTab === t.id ? 'text-blue-500' : isDark ? 'text-gray-500' : 'text-gray-400']">
+        <span class="text-[22px] leading-none">{{ t.icon }}</span>
+        <span class="text-[10px] mt-1 font-medium">{{ t.label }}</span>
+        <span v-if="activeTab === t.id" class="absolute bottom-2 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-blue-500"></span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ OVERLAYS ═══════════════ -->
+
+<!-- Dropdown backdrop -->
+<div v-if="showProv || showMdl" class="fixed inset-0 z-40" @click="showProv = false; showMdl = false"></div>
+
+<!-- Context Menu (long press / right click) -->
+<transition name="fade">
+  <div v-if="ctxAct" class="fixed inset-0 z-50 flex items-end" @click="ctxAct = null">
+    <div class="absolute inset-0 bg-black/40 backdrop-blur-sm"></div>
+    <div :class="['relative w-full mx-4 mb-6 rounded-2xl overflow-hidden shadow-2xl', isDark ? 'bg-[#2A2A2A]' : 'bg-white']" @click.stop>
+      <div :class="['px-4 py-3.5 border-b', isDark ? 'border-gray-700' : 'border-gray-100']">
+        <p class="font-semibold text-[13px] truncate">{{ ctxAct?.name }}</p>
+        <p :class="['text-[11px] mt-0.5', isDark ? 'text-gray-400' : 'text-gray-500']">{{ ctxAct?.time }} · {{ TYPE_META[ctxAct?.type]?.label }}</p>
+      </div>
+      <button @click="openEditAct(ctxAct)" :class="['w-full px-4 py-3.5 text-left text-[14px] text-blue-500 flex items-center gap-3 press', isDark ? 'hover:bg-gray-700/30' : 'hover:bg-gray-50']">
+        <span>✏️</span> 编辑活动
+      </button>
+      <button @click="deleteActUI(ctxAct?.id)" :class="['w-full px-4 py-3.5 text-left text-[14px] text-red-500 flex items-center gap-3 press', isDark ? 'hover:bg-gray-700/30' : 'hover:bg-gray-50']">
+        <span>🗑️</span> 删除活动
+      </button>
+      <button @click="ctxAct = null" :class="['w-full px-4 py-3.5 text-left text-[14px] press border-t', isDark ? 'text-gray-400 border-gray-700' : 'text-gray-500 border-gray-100']">取消</button>
+    </div>
+  </div>
+</transition>
+
+<!-- Edit Activity Sheet -->
+<transition name="slide-up">
+  <div v-if="showEditAct" class="fixed inset-0 z-50 flex items-end">
+    <div class="absolute inset-0 bg-black/50" @click="showEditAct = false"></div>
+    <div :class="['relative w-full rounded-t-3xl max-h-[90vh] flex flex-col', isDark ? 'bg-[#191919]' : 'bg-white']">
+      <!-- Handle -->
+      <div class="flex justify-center pt-3 pb-1 flex-shrink-0">
+        <div :class="['w-10 h-1 rounded-full', isDark ? 'bg-gray-700' : 'bg-gray-200']"></div>
+      </div>
+      <div :class="['flex items-center justify-between px-5 py-3 border-b flex-shrink-0', isDark ? 'border-gray-800' : 'border-gray-100']">
+        <h3 class="font-semibold text-[15px]">编辑活动</h3>
+        <button @click="showEditAct = false" :class="['w-8 h-8 rounded-full flex items-center justify-center text-sm', isDark ? 'bg-[#2F2F2F] text-gray-300' : 'bg-[#F7F6F3] text-gray-600']">✕</button>
+      </div>
+      <div v-if="editAct" class="flex-1 scroll-y px-5 py-4 space-y-4 pb-8">
+        <div>
+          <label :class="['text-[11px] font-semibold block mb-1.5', isDark ? 'text-gray-400' : 'text-gray-500']">活动名称</label>
+          <input v-model="editAct.name" :class="['w-full px-3.5 py-3 rounded-xl border text-[13px] outline-none', isDark ? 'bg-[#2F2F2F] border-gray-700 text-white' : 'bg-[#F7F6F3] border-gray-200']" />
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label :class="['text-[11px] font-semibold block mb-1.5', isDark ? 'text-gray-400' : 'text-gray-500']">开始时间</label>
+            <input v-model="editAct.time" type="time" :class="['w-full px-3 py-3 rounded-xl border text-[13px] outline-none', isDark ? 'bg-[#2F2F2F] border-gray-700 text-white' : 'bg-[#F7F6F3] border-gray-200']" />
+          </div>
+          <div>
+            <label :class="['text-[11px] font-semibold block mb-1.5', isDark ? 'text-gray-400' : 'text-gray-500']">结束时间</label>
+            <input v-model="editAct.endTime" type="time" :class="['w-full px-3 py-3 rounded-xl border text-[13px] outline-none', isDark ? 'bg-[#2F2F2F] border-gray-700 text-white' : 'bg-[#F7F6F3] border-gray-200']" />
+          </div>
+        </div>
+        <div>
+          <label :class="['text-[11px] font-semibold block mb-2', isDark ? 'text-gray-400' : 'text-gray-500']">类型</label>
+          <div class="flex gap-2 flex-wrap">
+            <button v-for="(meta, type) in TYPE_META" :key="type" @click="editAct.type = type"
+              :class="['px-3 py-1.5 rounded-full text-[12px] font-medium border press-sm transition',
+                editAct.type === type ? 'bg-blue-500 text-white border-transparent' : isDark ? 'border-gray-700 text-gray-300' : 'border-gray-200 text-gray-600']">
+              {{ meta.icon }} {{ meta.label }}
+            </button>
+          </div>
+        </div>
+        <div>
+          <label :class="['text-[11px] font-semibold block mb-1.5', isDark ? 'text-gray-400' : 'text-gray-500']">地址</label>
+          <input v-model="editAct.address" placeholder="可选" :class="['w-full px-3.5 py-3 rounded-xl border text-[13px] outline-none', isDark ? 'bg-[#2F2F2F] border-gray-700 text-white placeholder-gray-600' : 'bg-[#F7F6F3] border-gray-200 placeholder-gray-400']" />
+        </div>
+        <div>
+          <label :class="['text-[11px] font-semibold block mb-1.5', isDark ? 'text-gray-400' : 'text-gray-500']">备注</label>
+          <textarea v-model="editAct.notes" rows="3" placeholder="可选" :class="['w-full px-3.5 py-3 rounded-xl border text-[13px] outline-none resize-none', isDark ? 'bg-[#2F2F2F] border-gray-700 text-white placeholder-gray-600' : 'bg-[#F7F6F3] border-gray-200 placeholder-gray-400']"></textarea>
+        </div>
+        <button @click="saveEditAct" class="w-full py-3.5 rounded-2xl bg-blue-500 text-white font-semibold text-[13px] press">保存更改</button>
+      </div>
+    </div>
+  </div>
+</transition>
+
+<!-- Add Day Sheet -->
+<transition name="slide-up">
+  <div v-if="showAddDay" class="fixed inset-0 z-50 flex items-end">
+    <div class="absolute inset-0 bg-black/50" @click="showAddDay = false"></div>
+    <div :class="['relative w-full rounded-t-3xl', isDark ? 'bg-[#191919]' : 'bg-white']">
+      <div class="flex justify-center pt-3 pb-1">
+        <div :class="['w-10 h-1 rounded-full', isDark ? 'bg-gray-700' : 'bg-gray-200']"></div>
+      </div>
+      <div :class="['flex items-center justify-between px-5 py-3 border-b', isDark ? 'border-gray-800' : 'border-gray-100']">
+        <h3 class="font-semibold text-[15px]">添加新的一天</h3>
+        <button @click="showAddDay = false" :class="['w-8 h-8 rounded-full flex items-center justify-center text-sm', isDark ? 'bg-[#2F2F2F] text-gray-300' : 'bg-[#F7F6F3] text-gray-600']">✕</button>
+      </div>
+      <div class="px-5 py-4 space-y-4 pb-8">
+        <div>
+          <label :class="['text-[11px] font-semibold block mb-1.5', isDark ? 'text-gray-400' : 'text-gray-500']">日期</label>
+          <input v-model="addDayDate" type="date" :class="['w-full px-3.5 py-3 rounded-xl border text-[13px] outline-none', isDark ? 'bg-[#2F2F2F] border-gray-700 text-white' : 'bg-[#F7F6F3] border-gray-200']" />
+        </div>
+        <div>
+          <label :class="['text-[11px] font-semibold block mb-1.5', isDark ? 'text-gray-400' : 'text-gray-500']">标题</label>
+          <input v-model="addDayTitle" placeholder="如：乌布文化之旅" @keyup.enter="doAddDay"
+            :class="['w-full px-3.5 py-3 rounded-xl border text-[13px] outline-none', isDark ? 'bg-[#2F2F2F] border-gray-700 text-white placeholder-gray-600' : 'bg-[#F7F6F3] border-gray-200 placeholder-gray-400']" />
+        </div>
+        <button @click="doAddDay" class="w-full py-3.5 rounded-2xl bg-blue-500 text-white font-semibold text-[13px] press">添加</button>
+      </div>
+    </div>
+  </div>
+</transition>
+
+<!-- Add Activity Sheet -->
+<transition name="slide-up">
+  <div v-if="showAddAct" class="fixed inset-0 z-50 flex items-end">
+    <div class="absolute inset-0 bg-black/50" @click="showAddAct = false"></div>
+    <div :class="['relative w-full rounded-t-3xl max-h-[90vh] flex flex-col', isDark ? 'bg-[#191919]' : 'bg-white']">
+      <div class="flex justify-center pt-3 pb-1 flex-shrink-0">
+        <div :class="['w-10 h-1 rounded-full', isDark ? 'bg-gray-700' : 'bg-gray-200']"></div>
+      </div>
+      <div :class="['flex items-center justify-between px-5 py-3 border-b flex-shrink-0', isDark ? 'border-gray-800' : 'border-gray-100']">
+        <h3 class="font-semibold text-[15px]">添加活动</h3>
+        <button @click="showAddAct = false" :class="['w-8 h-8 rounded-full flex items-center justify-center text-sm', isDark ? 'bg-[#2F2F2F] text-gray-300' : 'bg-[#F7F6F3] text-gray-600']">✕</button>
+      </div>
+      <div class="flex-1 scroll-y px-5 py-4 space-y-4 pb-8">
+        <div>
+          <label :class="['text-[11px] font-semibold block mb-1.5', isDark ? 'text-gray-400' : 'text-gray-500']">活动名称 <span class="text-red-400">*</span></label>
+          <input v-model="newAct.name" placeholder="如：圣猴森林" :class="['w-full px-3.5 py-3 rounded-xl border text-[13px] outline-none', isDark ? 'bg-[#2F2F2F] border-gray-700 text-white placeholder-gray-600' : 'bg-[#F7F6F3] border-gray-200 placeholder-gray-400']" />
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label :class="['text-[11px] font-semibold block mb-1.5', isDark ? 'text-gray-400' : 'text-gray-500']">开始时间</label>
+            <input v-model="newAct.time" type="time" :class="['w-full px-3 py-3 rounded-xl border text-[13px] outline-none', isDark ? 'bg-[#2F2F2F] border-gray-700 text-white' : 'bg-[#F7F6F3] border-gray-200']" />
+          </div>
+          <div>
+            <label :class="['text-[11px] font-semibold block mb-1.5', isDark ? 'text-gray-400' : 'text-gray-500']">结束时间</label>
+            <input v-model="newAct.endTime" type="time" :class="['w-full px-3 py-3 rounded-xl border text-[13px] outline-none', isDark ? 'bg-[#2F2F2F] border-gray-700 text-white' : 'bg-[#F7F6F3] border-gray-200']" />
+          </div>
+        </div>
+        <div>
+          <label :class="['text-[11px] font-semibold block mb-2', isDark ? 'text-gray-400' : 'text-gray-500']">类型</label>
+          <div class="flex gap-2 flex-wrap">
+            <button v-for="(meta, type) in TYPE_META" :key="type" @click="newAct.type = type"
+              :class="['px-3 py-1.5 rounded-full text-[12px] font-medium border press-sm transition',
+                newAct.type === type ? 'bg-blue-500 text-white border-transparent' : isDark ? 'border-gray-700 text-gray-300' : 'border-gray-200 text-gray-600']">
+              {{ meta.icon }} {{ meta.label }}
+            </button>
+          </div>
+        </div>
+        <div>
+          <label :class="['text-[11px] font-semibold block mb-1.5', isDark ? 'text-gray-400' : 'text-gray-500']">地址</label>
+          <input v-model="newAct.address" placeholder="可选" :class="['w-full px-3.5 py-3 rounded-xl border text-[13px] outline-none', isDark ? 'bg-[#2F2F2F] border-gray-700 text-white placeholder-gray-600' : 'bg-[#F7F6F3] border-gray-200 placeholder-gray-400']" />
+        </div>
+        <div>
+          <label :class="['text-[11px] font-semibold block mb-1.5', isDark ? 'text-gray-400' : 'text-gray-500']">备注</label>
+          <textarea v-model="newAct.notes" rows="2" placeholder="可选" :class="['w-full px-3.5 py-3 rounded-xl border text-[13px] outline-none resize-none', isDark ? 'bg-[#2F2F2F] border-gray-700 text-white placeholder-gray-600' : 'bg-[#F7F6F3] border-gray-200 placeholder-gray-400']"></textarea>
+        </div>
+        <button @click="doAddAct" class="w-full py-3.5 rounded-2xl bg-blue-500 text-white font-semibold text-[13px] press">添加活动</button>
+      </div>
+    </div>
+  </div>
+</transition>
+
+<!-- Version History Sheet -->
+<transition name="slide-up">
+  <div v-if="showVers" class="fixed inset-0 z-50 flex items-end">
+    <div class="absolute inset-0 bg-black/50" @click="showVers = false"></div>
+    <div :class="['relative w-full rounded-t-3xl max-h-[80vh] flex flex-col', isDark ? 'bg-[#191919]' : 'bg-white']">
+      <div class="flex justify-center pt-3 pb-1 flex-shrink-0">
+        <div :class="['w-10 h-1 rounded-full', isDark ? 'bg-gray-700' : 'bg-gray-200']"></div>
+      </div>
+      <div :class="['flex items-center justify-between px-5 py-3 border-b flex-shrink-0', isDark ? 'border-gray-800' : 'border-gray-100']">
+        <h3 class="font-semibold text-[15px]">版本历史</h3>
+        <button @click="showVers = false" :class="['w-8 h-8 rounded-full flex items-center justify-center text-sm', isDark ? 'bg-[#2F2F2F] text-gray-300' : 'bg-[#F7F6F3] text-gray-600']">✕</button>
+      </div>
+      <div class="flex-1 scroll-y px-4 py-3 space-y-2 pb-8">
+        <div v-if="!versions.length" class="text-center py-14">
+          <div class="text-3xl mb-3">📋</div>
+          <p :class="['text-[13px]', isDark ? 'text-gray-400' : 'text-gray-500']">暂无历史版本</p>
+          <p :class="['text-[12px] mt-1', isDark ? 'text-gray-600' : 'text-gray-400']">每次 AI 修改行程前会自动保存快照</p>
+        </div>
+        <div v-for="v in versions" :key="v.id"
+          :class="['rounded-2xl border p-3.5 flex items-center gap-3', isDark ? 'border-gray-800 bg-[#242424]' : 'border-gray-100 bg-white shadow-sm']">
+          <div class="flex-1 min-w-0">
+            <p class="text-[13px] font-medium truncate">{{ v.label }}</p>
+            <p :class="['text-[11px] mt-0.5', isDark ? 'text-gray-500' : 'text-gray-400']">
+              {{ formatTs(v.timestamp) }} · {{ v.snapshot.days.length }} 天 · {{ v.snapshot.days.reduce((s,d) => s + d.activities.length, 0) }} 个活动
+            </p>
+          </div>
+          <button @click="restoreV(v.id)" :class="['flex-shrink-0 text-[12px] font-semibold px-3 py-1.5 rounded-xl press-sm transition', isDark ? 'bg-blue-600/20 text-blue-400' : 'bg-blue-50 text-blue-600']">恢复</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</transition>
+
+<!-- Toast stack -->
+<div class="fixed bottom-24 inset-x-0 flex flex-col items-center gap-2 z-[60] pointer-events-none px-4">
+  <transition-group name="toast">
+    <div v-for="t in toasts" :key="t.id"
+      :class="['px-4 py-2.5 rounded-full text-[13px] font-medium shadow-xl max-w-xs text-center',
+        t.type === 'error' ? 'bg-red-500 text-white' :
+        t.type === 'success' ? 'bg-emerald-500 text-white' :
+        'bg-gray-900 text-white dark:bg-gray-800']">
+      {{ t.msg }}
+    </div>
+  </transition-group>
+</div>
+
+</div>
+  `
+};
+
+createApp(App).mount('#app');
+</script>
+</body>
+</html>
