@@ -1221,7 +1221,12 @@ const App = {
       mapPolylines.forEach(p => p.setMap(null)); mapPolylines = [];
 
       const day = selDay.value;
-      if (!day) return;
+      if (!day) {
+        const { center, zoom } = getSmartCenter();
+        mapInst.setCenter(center);
+        mapInst.setZoom(zoom);
+        return;
+      }
       const acts = day.activities.filter(a => a.location);
       const numLabels = ['①','②','③','④','⑤','⑥','⑦','⑧','⑨','⑩'];
       acts.forEach((a, i) => {
@@ -1251,6 +1256,10 @@ const App = {
         const b = new window.google.maps.LatLngBounds();
         acts.forEach(a => b.extend(a.location));
         mapInst.fitBounds(b, { top:60, right:20, bottom:20, left:20 });
+      } else {
+        const { center, zoom } = getSmartCenter();
+        mapInst.setCenter(center);
+        mapInst.setZoom(zoom);
       }
     }
 
@@ -1330,7 +1339,7 @@ const App = {
         try {
           const data = JSON.parse(ev.target.result);
           await TOOLS.save_version({ label:'导入前备份' });
-          if (!data.id) data.id = crypto.randomUUID();
+          data.id = crypto.randomUUID();
           Object.assign(trip, data);
           await saveTrip();
           if (trip.days.length) selDayId.value = trip.days[0].id;
