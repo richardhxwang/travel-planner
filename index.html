@@ -357,6 +357,9 @@ const App = {
     const showAddAct   = ref(false);
     const newAct       = reactive({ time:'09:00', endTime:'', type:'attraction', name:'', address:'', notes:'' });
 
+    /* ---- Map Detail Sheet ---- */
+    const mapDetailAct = ref(null);
+
     /* ---- Map State ---- */
     const mapReady     = ref(false);
     const mapErr       = ref('');
@@ -1045,8 +1048,7 @@ const App = {
           }
         });
         mk.addListener('click', () => {
-          mapInfoWin.setContent(`<div style="font-size:13px;font-weight:600;max-width:160px">${a.name}</div><div style="font-size:11px;color:#6b7280;margin-top:2px">${a.time}${a.address ? ' · ' + a.address : ''}</div>`);
-          mapInfoWin.open(mapInst, mk);
+          mapDetailAct.value = a;
         });
         mapMarkers.push(mk);
       });
@@ -1161,7 +1163,7 @@ const App = {
       showEditAct, editAct, ctxAct, ctxDay,
       showAddDay, addDayDate, addDayTitle,
       showAddAct, newAct,
-      mapReady, mapErr,
+      mapReady, mapErr, mapDetailAct,
       browseCat, browseQ, browseCats, filteredActs, allActs,
       showVers,
       showChgPw, newPw, newPw2, keys, keysSaved, showKeyVis,
@@ -2040,6 +2042,76 @@ const App = {
             </p>
           </div>
           <button @click="restoreV(v.id)" :class="['flex-shrink-0 text-[12px] font-semibold px-3 py-1.5 rounded-xl press-sm transition', isDark ? 'bg-[#10a37f]/20 text-[#10a37f]' : 'bg-[#d7f4eb] text-[#10a37f]']">恢复</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</transition>
+
+<!-- Map Detail Sheet -->
+<transition name="slide-up">
+  <div v-if="mapDetailAct" class="fixed inset-0 z-50 flex items-end">
+    <div class="absolute inset-0 bg-black/40" @click="mapDetailAct = null"></div>
+    <div :class="['relative w-full rounded-t-3xl max-h-[70vh] flex flex-col', isDark ? 'bg-[#000]' : 'bg-white']">
+      <div class="flex justify-center pt-3 pb-1 flex-shrink-0">
+        <div :class="['w-10 h-1 rounded-full', isDark ? 'bg-gray-700' : 'bg-gray-200']"></div>
+      </div>
+      <div :class="['px-5 py-3 border-b flex-shrink-0 flex items-start gap-3', isDark ? 'border-[#2e2e2e]' : 'border-[#d9d9d9]']">
+        <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+          :style="{ background: TYPE_META[mapDetailAct.type]?.bg, color: TYPE_META[mapDetailAct.type]?.color }">
+          <span class="w-5 h-5" v-html="TYPE_META[mapDetailAct.type]?.icon"></span>
+        </div>
+        <div class="flex-1 min-w-0">
+          <h3 class="font-semibold text-[15px]">{{ mapDetailAct.name }}</h3>
+          <p :class="['text-[12px] mt-0.5', isDark ? 'text-[#6b6b6b]' : 'text-[#9b9b9b]']">
+            {{ mapDetailAct.time }}{{ mapDetailAct.endTime ? ' – ' + mapDetailAct.endTime : '' }}
+            <span v-if="mapDetailAct.address"> · {{ mapDetailAct.address }}</span>
+          </p>
+        </div>
+        <button @click="mapDetailAct = null" :class="['w-8 h-8 rounded-full flex items-center justify-center text-sm flex-shrink-0', isDark ? 'bg-[#1a1a1a] text-gray-300' : 'bg-[#f4f4f5] text-gray-600']">✕</button>
+      </div>
+      <div class="flex-1 scroll-y px-5 py-4 space-y-3 pb-8">
+        <p v-if="mapDetailAct.notes" :class="['text-[13px] leading-relaxed', isDark ? 'text-gray-300' : 'text-[#1a1a1a]']">{{ mapDetailAct.notes }}</p>
+
+        <!-- Google info -->
+        <div v-if="mapDetailAct.googleInfo" :class="['rounded-xl p-3 text-[12px] space-y-1.5', isDark ? 'bg-[#111]' : 'bg-[#f4f4f5]']">
+          <div class="font-semibold text-[11px] uppercase tracking-wide text-[#10a37f]">Google 信息</div>
+          <div v-if="mapDetailAct.googleInfo.rating" class="flex gap-3 items-center flex-wrap">
+            <span class="flex items-center gap-0.5 text-amber-500"><span class="w-3 h-3" v-html="SVG.star"></span> {{ mapDetailAct.googleInfo.rating }}/5</span>
+            <span v-if="mapDetailAct.googleInfo.reviewCount" :class="isDark ? 'text-gray-400' : 'text-gray-500'">{{ mapDetailAct.googleInfo.reviewCount }} 条评价</span>
+          </div>
+          <div v-if="mapDetailAct.googleInfo.hours" :class="isDark ? 'text-gray-400' : 'text-gray-500'">{{ mapDetailAct.googleInfo.hours }}</div>
+          <div v-if="mapDetailAct.googleInfo.phone" :class="isDark ? 'text-gray-400' : 'text-gray-600'">{{ mapDetailAct.googleInfo.phone }}</div>
+          <a v-if="mapDetailAct.googleInfo.website" :href="mapDetailAct.googleInfo.website" target="_blank" class="text-[#10a37f] underline">官网</a>
+        </div>
+
+        <!-- Xiaohongshu -->
+        <div v-if="mapDetailAct.xiaohongshu" :class="['rounded-xl p-3 text-[12px] space-y-2', isDark ? 'bg-[#111]' : 'bg-[#FFF1F2]']">
+          <div class="font-semibold text-[11px] uppercase tracking-wide text-rose-500">小红书推荐</div>
+          <p v-if="mapDetailAct.xiaohongshu.summary" :class="['leading-relaxed', isDark ? 'text-gray-300' : 'text-gray-700']">{{ mapDetailAct.xiaohongshu.summary }}</p>
+          <div v-if="mapDetailAct.xiaohongshu.highlights?.length" class="flex flex-wrap gap-1.5">
+            <span v-for="h in mapDetailAct.xiaohongshu.highlights" :key="h" :class="['px-2 py-0.5 rounded-full text-[11px]', isDark ? 'bg-rose-900/30 text-rose-300' : 'bg-rose-50 text-rose-600']">{{ h }}</span>
+          </div>
+        </div>
+
+        <!-- Instagram -->
+        <div v-if="mapDetailAct.instagram" :class="['rounded-xl p-3 text-[12px] space-y-2', isDark ? 'bg-[#111]' : 'bg-[#FDF4FF]']">
+          <div class="font-semibold text-[11px] uppercase tracking-wide text-purple-500">Instagram</div>
+          <p v-if="mapDetailAct.instagram.summary" :class="['leading-relaxed', isDark ? 'text-gray-300' : 'text-gray-700']">{{ mapDetailAct.instagram.summary }}</p>
+          <div v-if="mapDetailAct.instagram.hashtags?.length" class="flex flex-wrap gap-1.5">
+            <span v-for="tag in mapDetailAct.instagram.hashtags" :key="tag" :class="['px-2 py-0.5 rounded-full text-[11px]', isDark ? 'bg-purple-900/30 text-purple-300' : 'bg-purple-50 text-purple-600']">#{{ tag }}</span>
+          </div>
+        </div>
+
+        <!-- Reservation -->
+        <div v-if="mapDetailAct.reservation?.required" :class="['rounded-xl p-3 text-[12px]', isDark ? 'bg-[#111]' : 'bg-[#FFF7ED]']">
+          <div class="font-semibold text-[11px] uppercase tracking-wide text-orange-500 mb-1.5">预订信息</div>
+          <div v-if="mapDetailAct.reservation.urgency" class="text-orange-500">{{ mapDetailAct.reservation.urgency }}</div>
+          <div v-if="mapDetailAct.reservation.tip" :class="['mt-1.5 leading-relaxed', isDark ? 'text-gray-300' : 'text-gray-700']">{{ mapDetailAct.reservation.tip }}</div>
+          <div v-if="mapDetailAct.reservation.links?.length" class="flex gap-2 mt-2 flex-wrap">
+            <a v-for="l in mapDetailAct.reservation.links" :key="l.url || l" :href="l.url || l" target="_blank"
+              class="text-[#10a37f] underline text-[12px]">{{ l.platform || l }}</a>
+          </div>
         </div>
       </div>
     </div>

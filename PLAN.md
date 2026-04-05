@@ -265,16 +265,16 @@ interface Version {
 - [x] PWA "add to home screen" prompt (beforeinstallprompt + iOS Safari detection)
 - [x] Offline-friendly (graceful degradation: offline banner, AI guard, online/offline events)
 
-### Phase 7 — UI Redesign (TODO)
+### Phase 7 — UI Redesign ✅
 Design reference: LumiChat (color system) + FurNote (tab bar)
 
-- [ ] **LumiChat color tokens**: accent `#10a37f`, dark bg `#000`/`#1a1a1a`, light bg `#fff`/`#f4f4f5`, borders `#2e2e2e`/`#d9d9d9`
-- [ ] **SF Symbols–style SVG icons**: replace ALL emoji with inline SVG (stroke-based, 1.5px, round caps)
-- [ ] **FurNote-style tab bar**: native iOS feel, SF Symbol icons, tint color highlight, smooth switch transitions
-- [ ] **LumiChat input bar**: rounded rect with border, toolbar row (globe/send), circular send/stop buttons with material effect
-- [ ] **User message bubbles**: right-aligned rounded pill (like LumiChat MessageRow)
-- [ ] **Map detail sheet**: tap marker → slide-up bottom sheet with full activity details (google/xiaohongshu/instagram/reservation)
-- [ ] **Activity detail in expanded cards**: xiaohongshu highlights + posts, instagram hashtags + posts, reservation links
+- [x] **LumiChat color tokens**: CSS custom properties — accent `#10a37f`, dark bg `#000`/`#1a1a1a`, light bg `#fff`/`#f4f4f5`, borders `#2e2e2e`/`#d9d9d9`
+- [x] **SF Symbols–style SVG icons**: 25+ inline SVGs replacing ALL emoji (stroke-based, 1.5px, round caps)
+- [x] **FurNote-style tab bar**: backdrop blur, scale animation on active, tint color highlight
+- [x] **LumiChat input bar**: separated circular send/stop buttons with shadow, backdrop blur bar
+- [x] **User message bubbles**: right-aligned rounded pill with accent green bg
+- [x] **Map detail sheet**: tap marker → slide-up bottom sheet with full activity details (google/xiaohongshu/instagram/reservation)
+- [x] **Activity detail in expanded cards**: xiaohongshu highlights + posts, instagram hashtags + posts, reservation links (already implemented in Phase 3)
 
 ---
 
