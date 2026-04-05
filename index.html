@@ -334,7 +334,7 @@ const App = {
       if (trip.days.length) selDayId.value = trip.days[0].id;
       else selDayId.value = '';
       showTripSwitcher.value = false;
-      await saveAllTrips();
+      await _enqueue(() => saveAllTrips());
       await loadMessages();
       await loadVersions();
       toast('已切换到：' + (trip.name || '新计划'), 'info');
@@ -352,7 +352,7 @@ const App = {
       messages.value = [];
       versions.value = [];
       showTripSwitcher.value = false;
-      saveAllTrips();
+      _enqueue(() => saveAllTrips());
       toast('已创建新计划', 'success');
     }
 
@@ -380,7 +380,7 @@ const App = {
         loadVersions();
       }
       showTripSwitcher.value = false;
-      saveAllTrips();
+      _enqueue(() => saveAllTrips());
       toast('已删除计划', 'success');
     }
 
@@ -624,10 +624,12 @@ const App = {
     /* =====================================================
        PERSISTENCE
     ===================================================== */
+    let _saveQueue = Promise.resolve();
+    function _enqueue(fn) { _saveQueue = _saveQueue.then(fn, fn); return _saveQueue; }
     async function saveTrip() {
       if (!masterKey.value) return;
       trips.value[activeTripIdx.value] = JSON.parse(JSON.stringify(trip));
-      await saveAllTrips();
+      await _enqueue(() => saveAllTrips());
     }
     async function saveAllTrips() {
       if (!masterKey.value) return;
