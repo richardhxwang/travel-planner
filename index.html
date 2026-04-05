@@ -342,6 +342,7 @@ const App = {
 
     function addTrip() {
       if (trips.value.length >= 3) { toast('最多支持 3 个旅行计划', 'error'); return; }
+      if (chatting.value) { toast('AI 对话中，请稍后操作', 'error'); return; }
       trips.value[activeTripIdx.value] = JSON.parse(JSON.stringify(trip));
       const nt = EMPTY_TRIP();
       trips.value.push(nt);
@@ -357,7 +358,14 @@ const App = {
 
     function deleteTrip(idx) {
       if (trips.value.length <= 1) { toast('至少保留一个计划', 'error'); return; }
+      if (chatting.value) { toast('AI 对话中，请稍后操作', 'error'); return; }
+      const deletedId = trips.value[idx].id;
       trips.value.splice(idx, 1);
+      // Clean up orphaned per-trip localStorage blobs
+      if (deletedId) {
+        localStorage.removeItem(`tp_messages_${deletedId}`);
+        localStorage.removeItem(`tp_versions_${deletedId}`);
+      }
       // Adjust active index: if deleted before current, shift down; if deleted current, clamp
       if (idx < activeTripIdx.value) {
         activeTripIdx.value--;
@@ -621,11 +629,13 @@ const App = {
     }
     async function saveVersions() {
       if (!masterKey.value) return;
+      if (!trip.id) trip.id = crypto.randomUUID();
       const vKey = trip.id;
       localStorage.setItem(`tp_versions_${vKey}`, await encryptData(masterKey.value, versions.value));
     }
     async function loadVersions() {
       if (!masterKey.value) return;
+      if (!trip.id) trip.id = crypto.randomUUID();
       const vKey = trip.id;
       const raw = localStorage.getItem(`tp_versions_${vKey}`);
       if (raw) {
@@ -635,6 +645,7 @@ const App = {
     }
     async function saveMessages() {
       if (!masterKey.value) return;
+      if (!trip.id) trip.id = crypto.randomUUID();
       // Save serializable message data (strip reactive/streaming flags)
       const toSave = messages.value.filter(m => !m.isStreaming).map(m => ({
         role: m.role, content: m.content || '', timestamp: m.timestamp,
@@ -646,6 +657,7 @@ const App = {
     }
     async function loadMessages() {
       if (!masterKey.value) return;
+      if (!trip.id) trip.id = crypto.randomUUID();
       const msgKey = trip.id;
       const raw = localStorage.getItem(`tp_messages_${msgKey}`);
       if (raw) {
@@ -1318,6 +1330,7 @@ const App = {
         try {
           const data = JSON.parse(ev.target.result);
           await TOOLS.save_version({ label:'导入前备份' });
+          if (!data.id) data.id = crypto.randomUUID();
           Object.assign(trip, data);
           await saveTrip();
           if (trip.days.length) selDayId.value = trip.days[0].id;
