@@ -214,47 +214,75 @@ interface Version {
 
 ## Implementation Phases
 
-### Phase 1 — Core Framework
-- [ ] HTML skeleton: PWA meta, CDN imports, Vue 3 app mount
-- [ ] Bottom tab navigation + page transitions
-- [ ] Settings page: master password + encrypted API key storage
-- [ ] Basic chat: streaming AI responses + markdown rendering
+### Phase 1 — Core Framework ✅
+- [x] HTML skeleton: PWA meta, CDN imports, Vue 3 app mount
+- [x] Bottom tab navigation + page transitions
+- [x] Settings page: master password + encrypted API key storage (AES-GCM + PBKDF2)
+- [x] Basic chat: streaming AI responses + markdown rendering
+- [x] Lock/unlock screen with master password
 
-### Phase 2 — AI Tool Use
-- [ ] Define 22 tools as JSON schema for function calling
-- [ ] AI system prompt + tool dispatch
-- [ ] Tool execution engine (each tool = JS function that mutates store)
-- [ ] Tool call feedback in chat (e.g. "✅ 已添加 Locavore 到 4/7 午餐")
-- [ ] Auto save_version before every mutating tool call
+### Phase 2 — AI Tool Use ✅
+- [x] Define 22 tools as JSON schema for function calling
+- [x] AI system prompt with xiaohongshu/instagram/reservation instructions
+- [x] Tool execution engine (each tool = JS function that mutates store)
+- [x] Tool call feedback in chat (collapsible chips with arg summary)
+- [x] Auto save_version before every mutating tool call
+- [x] Multi-turn tool call loop (up to 8 depth)
+- [x] 5 provider support: OpenAI, Groq, Kimi, Qwen, Gemini
+- [x] Web search toggle (per-provider: tool or param)
 
-### Phase 3 — Timeline UI
-- [ ] Horizontal date selector (swipe)
-- [ ] Vertical timeline with time axis + activity cards
-- [ ] Card expand/collapse animation
-- [ ] Travel segment cards between activities
-- [ ] LocalStorage persistence
+### Phase 3 — Timeline UI ✅
+- [x] Horizontal date selector (swipe)
+- [x] Vertical timeline with time axis + activity cards
+- [x] Card expand/collapse with chevron animation
+- [x] Travel segment cards between activities (mode icon + duration)
+- [x] LocalStorage persistence (encrypted)
+- [x] Long-press context menu (edit/delete)
+- [x] Add day / add activity modals
 
-### Phase 4 — Google Maps
-- [ ] Maps JS API init + markers by type (colored)
-- [ ] Route polylines between activities (numbered ①②③)
-- [ ] Bottom drawer: place list
-- [ ] Places API: enrich activity after AI adds it
-- [ ] Directions API: fill `travelFromPrev`
+### Phase 4 — Google Maps ✅
+- [x] Maps JS API dynamic init with encrypted key
+- [x] Colored numbered markers by type (①②③)
+- [x] Route polylines between activities
+- [x] Day selector chips in map header
+- [x] Placeholder when no API key configured
 
-### Phase 5 — Browse & Settings
-- [ ] Browse tab: category pills + card grid
-- [ ] Tips sub-tab
-- [ ] Export / Import JSON
-- [ ] Dark mode toggle
-- [ ] Version history viewer
+### Phase 5 — Browse & Settings ✅
+- [x] Browse tab: category pills + card grid + search
+- [x] Tips sub-tab with category badges
+- [x] Export / Import JSON
+- [x] Dark mode toggle (persisted)
+- [x] Version history viewer with restore
+- [x] All 5 provider API key management
+- [x] Provider/model selection
 
-### Phase 6 — Polish
-- [ ] All animations (slide, fade, stagger, skeleton)
-- [ ] Quick reply buttons in chat
-- [ ] Offline-friendly (graceful degradation)
+### Phase 6 — Polish (partial)
+- [x] Slide/fade tab transitions
+- [x] Quick reply chips in chat (context-aware)
+- [x] Toast notifications
+- [x] IME-safe Chinese input (composing check)
+- [x] buildMsgs fix: tool call history preserved across turns
 - [ ] PWA "add to home screen" prompt
+- [ ] Offline-friendly (graceful degradation)
+
+### Phase 7 — UI Redesign (TODO)
+Design reference: LumiChat (color system) + FurNote (tab bar)
+
+- [ ] **LumiChat color tokens**: accent `#10a37f`, dark bg `#000`/`#1a1a1a`, light bg `#fff`/`#f4f4f5`, borders `#2e2e2e`/`#d9d9d9`
+- [ ] **SF Symbols–style SVG icons**: replace ALL emoji with inline SVG (stroke-based, 1.5px, round caps)
+- [ ] **FurNote-style tab bar**: native iOS feel, SF Symbol icons, tint color highlight, smooth switch transitions
+- [ ] **LumiChat input bar**: rounded rect with border, toolbar row (globe/send), circular send/stop buttons with material effect
+- [ ] **User message bubbles**: right-aligned rounded pill (like LumiChat MessageRow)
+- [ ] **Map detail sheet**: tap marker → slide-up bottom sheet with full activity details (google/xiaohongshu/instagram/reservation)
+- [ ] **Activity detail in expanded cards**: xiaohongshu highlights + posts, instagram hashtags + posts, reservation links
 
 ---
+
+## Deployment
+- **Repo**: https://github.com/richardhxwang/travel-planner
+- **GitHub Pages**: https://richardhxwang.github.io/travel-planner/
+- **Local**: `python3 -m http.server 8899` → http://localhost:8899
+- **Netlify**: Drag `index.html` to Netlify Drop
 
 ## Key File
 `/Users/richard/Project/Bali travel/index.html` — the only file
