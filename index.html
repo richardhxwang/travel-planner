@@ -5,12 +5,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="apple-mobile-web-app-title" content="巴厘岛之旅">
+<meta name="apple-mobile-web-app-title" content="旅行规划">
 <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" id="themeColorMeta">
 <meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
-<title>巴厘岛旅行规划</title>
+<title>旅行规划</title>
 <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%8F%9D%EF%B8%8F%3C/text%3E%3C/svg%3E">
-<link rel="manifest" href="data:application/manifest+json,%7B%22name%22%3A%22%E5%B7%B4%E5%8E%98%E5%B2%9B%E6%97%85%E8%A1%8C%E8%A7%84%E5%88%92%22%2C%22short_name%22%3A%22%E5%B7%B4%E5%8E%98%E5%B2%9B%22%2C%22start_url%22%3A%22.%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%23ffffff%22%2C%22theme_color%22%3A%22%23ffffff%22%7D">
+<link rel="manifest" href="data:application/manifest+json,%7B%22name%22%3A%22%E6%97%85%E8%A1%8C%E8%A7%84%E5%88%92%22%2C%22short_name%22%3A%22%E6%97%85%E8%A1%8C%22%2C%22start_url%22%3A%22.%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%23ffffff%22%2C%22theme_color%22%3A%22%23ffffff%22%7D">
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 <script type="importmap">{"imports":{"vue":"https://unpkg.com/vue@3/dist/vue.esm-browser.js"}}</script>
@@ -170,12 +170,12 @@ const PROVIDERS = {
     models:[{id:'gemini-2.0-flash',label:'Gemini 2.0 Flash',def:true},{id:'gemini-2.0-flash-thinking-exp',label:'Gemini 2.0 Thinking'},{id:'gemini-2.5-pro-preview-03-25',label:'Gemini 2.5 Pro'}] }
 };
 
-const SYS_PROMPT = `你是一个专业的巴厘岛旅行规划助手。你可以通过函数调用来管理用户的行程。请用中文回复。
+const SYS_PROMPT = `你是一个专业的旅行规划助手。你可以通过函数调用来管理用户的行程。请用中文回复。
 
 当添加活动时，请尽量填充以下所有信息：
 - googleInfo: { rating, reviewCount, hours, phone, website, priceLevel }
 - xiaohongshu: { summary: "小红书上的推荐摘要", highlights: ["亮点1","亮点2"], posts: [{title:"帖子标题",url:"https://..."}], searchUrl: "https://www.xiaohongshu.com/search_result?keyword=地名" }
-- instagram: { summary: "Instagram上的评价", hashtags: ["bali","ubud"], posts: [{url:"https://...",description:"描述"}], searchUrl: "https://www.instagram.com/explore/tags/地名/" }
+- instagram: { summary: "Instagram上的评价", hashtags: ["标签1","标签2"], posts: [{url:"https://...",description:"描述"}], searchUrl: "https://www.instagram.com/explore/tags/地名/" }
 - reservation: { required: true/false, urgency: "建议提前1天预订", links: [{platform:"官网",url:"https://..."}], tip: "预订建议" }
 - location: { lat, lng } — 请提供准确的GPS坐标
 - address: 完整地址
@@ -207,7 +207,7 @@ const AI_TOOLS = [
   {type:'function',function:{name:'restore_version',description:'恢复到某个历史版本',parameters:{type:'object',properties:{versionId:{type:'string'}},required:['versionId']}}},
   {type:'function',function:{name:'compare_versions',description:'对比两个版本的差异',parameters:{type:'object',properties:{versionId1:{type:'string'},versionId2:{type:'string'}},required:['versionId1','versionId2']}}},
   {type:'function',function:{name:'get_versions',description:'获取所有历史版本列表',parameters:{type:'object',properties:{}}}},
-  {type:'function',function:{name:'search_place',description:'搜索Google Places获取地点信息',parameters:{type:'object',properties:{query:{type:'string',description:'搜索词，如"Locavore restaurant Ubud Bali"'},location:{type:'string',description:'地区，默认"Bali, Indonesia"'}},required:['query']}}}
+  {type:'function',function:{name:'search_place',description:'搜索Google Places获取地点信息',parameters:{type:'object',properties:{query:{type:'string',description:'搜索词，如"当地知名餐厅"'},location:{type:'string',description:'地区，如"Tokyo, Japan"'}},required:['query']}}}
 ];
 
 /* =====================================================
@@ -313,13 +313,56 @@ const App = {
     const activeTab = ref('ai');
     const dark      = ref(false);
 
-    /* ---- Trip Data ---- */
-    const trip = reactive({
-      id:'', name:'', destination:'Bali, Indonesia',
-      startDate:'', endDate:'', days:[], tips:[], notes:'',
-      createdAt:0, updatedAt:0
-    });
+    /* ---- Multi-Trip Data (max 3) ---- */
+    const EMPTY_TRIP = () => ({ id:'', name:'', destination:'', startDate:'', endDate:'', days:[], tips:[], notes:'', createdAt:0, updatedAt:0 });
+    const trips = ref([EMPTY_TRIP()]);
+    const activeTripIdx = ref(0);
+    const trip = reactive(EMPTY_TRIP());
     const versions = ref([]);
+    const showTripSwitcher = ref(false);
+
+    async function switchTrip(idx) {
+      if (idx === activeTripIdx.value) return;
+      // Save current trip data + messages
+      trips.value[activeTripIdx.value] = JSON.parse(JSON.stringify(trip));
+      await saveMessages();
+      // Load selected trip
+      activeTripIdx.value = idx;
+      Object.assign(trip, JSON.parse(JSON.stringify(trips.value[idx])));
+      if (trip.days.length) selDayId.value = trip.days[0].id;
+      else selDayId.value = '';
+      showTripSwitcher.value = false;
+      await saveAllTrips();
+      await loadMessages();
+      toast('已切换到：' + (trip.name || '新计划'), 'info');
+    }
+
+    function addTrip() {
+      if (trips.value.length >= 3) { toast('最多支持 3 个旅行计划', 'error'); return; }
+      trips.value[activeTripIdx.value] = JSON.parse(JSON.stringify(trip));
+      const nt = EMPTY_TRIP();
+      trips.value.push(nt);
+      activeTripIdx.value = trips.value.length - 1;
+      Object.assign(trip, nt);
+      selDayId.value = '';
+      messages.value = [];
+      showTripSwitcher.value = false;
+      saveAllTrips();
+      toast('已创建新计划', 'success');
+    }
+
+    function deleteTrip(idx) {
+      if (trips.value.length <= 1) { toast('至少保留一个计划', 'error'); return; }
+      trips.value.splice(idx, 1);
+      if (activeTripIdx.value >= trips.value.length) activeTripIdx.value = trips.value.length - 1;
+      Object.assign(trip, JSON.parse(JSON.stringify(trips.value[activeTripIdx.value])));
+      if (trip.days.length) selDayId.value = trip.days[0].id;
+      else selDayId.value = '';
+      messages.value = [];
+      showTripSwitcher.value = false;
+      saveAllTrips();
+      toast('已删除计划', 'success');
+    }
 
     /* ---- Settings State ---- */
     const keys = reactive({ openai:'', groq:'', kimi:'', qwen:'', gemini:'', maps:'' });
@@ -333,8 +376,8 @@ const App = {
     const messages     = ref([]);
     const chatInput    = ref('');
     const chatting     = ref(false);
-    const provider     = ref(localStorage.getItem('bali_provider') || 'openai');
-    const model        = ref(localStorage.getItem('bali_model') || 'gpt-4o-mini');
+    const provider     = ref(localStorage.getItem('tp_provider') || 'openai');
+    const model        = ref(localStorage.getItem('tp_model') || 'gpt-4o-mini');
     const webSearch    = ref(false);
     const showProv     = ref(false);
     const showMdl      = ref(false);
@@ -367,6 +410,8 @@ const App = {
     let mapMarkers     = [];
     let mapPolylines   = [];
     let mapInfoWin     = null;
+    let userLocMarker  = null;
+    const userLoc      = ref(null); // { lat, lng }
 
     /* ---- Browse State ---- */
     const browseCat    = ref('全部');
@@ -417,7 +462,7 @@ const App = {
     });
 
     const quickChips = computed(() => {
-      if (!trip.name) return ['帮我创建5天巴厘岛行程','推荐乌布必去景点','推荐当地特色餐厅','介绍巴厘岛交通方式'];
+      if (!trip.name) return ['帮我创建一个旅行计划','推荐热门旅行目的地','规划5天行程','介绍当地交通方式'];
       return ['添加明天的行程','搜索附近餐厅','计算路线时间','添加旅行小贴士'];
     });
 
@@ -432,9 +477,9 @@ const App = {
        INIT
     ===================================================== */
     onMounted(() => {
-      const d = localStorage.getItem('bali_dark') === 'true';
+      const d = localStorage.getItem('tp_dark') === 'true';
       dark.value = d; applyDark(d);
-      if (!localStorage.getItem('bali_has_password')) screen.value = 'setup';
+      if (!localStorage.getItem('tp_has_password')) screen.value = 'setup';
       else screen.value = 'lock';
 
       // Offline detection
@@ -443,7 +488,7 @@ const App = {
 
       // PWA install prompt
       const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
-      const a2hsDismissed = localStorage.getItem('bali_a2hs_dismissed');
+      const a2hsDismissed = localStorage.getItem('tp_a2hs_dismissed');
       if (!isStandalone && !a2hsDismissed) {
         // Android: capture beforeinstallprompt
         window.addEventListener('beforeinstallprompt', (e) => {
@@ -468,7 +513,7 @@ const App = {
     }
     function dismissA2HS() {
       showA2HS.value = false;
-      localStorage.setItem('bali_a2hs_dismissed', 'true');
+      localStorage.setItem('tp_a2hs_dismissed', 'true');
     }
 
     function applyDark(v) {
@@ -485,9 +530,9 @@ const App = {
       setupErr.value = '';
       const s = crypto.getRandomValues(new Uint8Array(16));
       saltArr.value = s;
-      localStorage.setItem('bali_salt', arrToB64(s));
+      localStorage.setItem('tp_salt', arrToB64(s));
       masterKey.value = await deriveKey(setupPw.value, s);
-      localStorage.setItem('bali_has_password', 'true');
+      localStorage.setItem('tp_has_password', 'true');
       await saveTrip(); await saveVersions(); await saveKeys();
       setupPw.value = ''; setupPw2.value = '';
       screen.value = 'app';
@@ -497,24 +542,35 @@ const App = {
       if (!lockPw.value) { lockErr.value = '请输入密码'; return; }
       unlocking.value = true; lockErr.value = '';
       try {
-        const s = b64ToArr(localStorage.getItem('bali_salt') || '');
+        const s = b64ToArr(localStorage.getItem('tp_salt') || '');
         saltArr.value = s;
         const key = await deriveKey(lockPw.value, s);
-        const tripRaw = localStorage.getItem('bali_trip_data');
+        const tripRaw = localStorage.getItem('tp_trip_data');
         if (tripRaw) {
           const t = await decryptData(key, tripRaw);
-          Object.assign(trip, t);
+          if (t.trips) {
+            // Multi-trip format
+            trips.value = t.trips;
+            activeTripIdx.value = t.activeIdx || 0;
+            Object.assign(trip, JSON.parse(JSON.stringify(trips.value[activeTripIdx.value])));
+          } else {
+            // Legacy single-trip format — migrate
+            Object.assign(trip, t);
+            trips.value = [JSON.parse(JSON.stringify(trip))];
+            activeTripIdx.value = 0;
+          }
           if (trip.days.length) selDayId.value = trip.days[0].id;
         }
-        const keysRaw = localStorage.getItem('bali_keys');
+        const keysRaw = localStorage.getItem('tp_keys');
         if (keysRaw) Object.assign(keys, await decryptData(key, keysRaw));
-        const vRaw = localStorage.getItem('bali_versions');
+        const vRaw = localStorage.getItem('tp_versions');
         if (vRaw) versions.value = await decryptData(key, vRaw);
         masterKey.value = key;
         lockPw.value = '';
-        provider.value = localStorage.getItem('bali_provider') || 'openai';
-        model.value = localStorage.getItem('bali_model') || 'gpt-4o-mini';
+        provider.value = localStorage.getItem('tp_provider') || 'openai';
+        model.value = localStorage.getItem('tp_model') || 'gpt-4o-mini';
         screen.value = 'app';
+        await loadMessages();
       } catch(e) {
         lockErr.value = '密码错误，请重试';
       } finally { unlocking.value = false; }
@@ -532,15 +588,38 @@ const App = {
     ===================================================== */
     async function saveTrip() {
       if (!masterKey.value) return;
-      localStorage.setItem('bali_trip_data', await encryptData(masterKey.value, JSON.parse(JSON.stringify(trip))));
+      trips.value[activeTripIdx.value] = JSON.parse(JSON.stringify(trip));
+      await saveAllTrips();
+    }
+    async function saveAllTrips() {
+      if (!masterKey.value) return;
+      localStorage.setItem('tp_trip_data', await encryptData(masterKey.value, { trips: JSON.parse(JSON.stringify(trips.value)), activeIdx: activeTripIdx.value }));
     }
     async function saveVersions() {
       if (!masterKey.value) return;
-      localStorage.setItem('bali_versions', await encryptData(masterKey.value, versions.value));
+      localStorage.setItem('tp_versions', await encryptData(masterKey.value, versions.value));
+    }
+    async function saveMessages() {
+      if (!masterKey.value) return;
+      // Save serializable message data (strip reactive/streaming flags)
+      const toSave = messages.value.filter(m => !m.isStreaming).map(m => ({
+        role: m.role, content: m.content || '', timestamp: m.timestamp,
+        toolCalls: m.toolCalls || [], _skip: m._skip || false,
+        _lastAssistant: m._lastAssistant, _toolResultMessages: m._toolResultMessages
+      }));
+      localStorage.setItem(`tp_messages_${activeTripIdx.value}`, await encryptData(masterKey.value, toSave));
+    }
+    async function loadMessages() {
+      if (!masterKey.value) return;
+      const raw = localStorage.getItem(`tp_messages_${activeTripIdx.value}`);
+      if (raw) {
+        try { messages.value = await decryptData(masterKey.value, raw); }
+        catch { messages.value = []; }
+      } else { messages.value = []; }
     }
     async function saveKeys() {
       if (!masterKey.value) return;
-      localStorage.setItem('bali_keys', await encryptData(masterKey.value, JSON.parse(JSON.stringify(keys))));
+      localStorage.setItem('tp_keys', await encryptData(masterKey.value, JSON.parse(JSON.stringify(keys))));
     }
 
     /* =====================================================
@@ -559,7 +638,7 @@ const App = {
       get_itinerary: () => JSON.parse(JSON.stringify(trip)),
 
       create_trip: ({ name, destination, startDate, endDate, notes }) => {
-        trip.id = genId(); trip.name = name; trip.destination = destination || 'Bali, Indonesia';
+        trip.id = genId(); trip.name = name; trip.destination = destination || '';
         trip.startDate = startDate; trip.endDate = endDate; trip.notes = notes || '';
         trip.days = []; trip.tips = []; trip.createdAt = Date.now(); trip.updatedAt = Date.now();
         saveTrip(); return { success:true, tripId:trip.id };
@@ -724,8 +803,8 @@ const App = {
 
       get_versions: () => versions.value.map(v => ({ id:v.id, label:v.label, timestamp:v.timestamp, days:v.snapshot.days.length })),
 
-      search_place: ({ query, location='Bali, Indonesia' }) => ({
-        success:true, query, location,
+      search_place: ({ query, location }) => ({
+        success:true, query, location: location || trip.destination || '',
         note:'Using AI knowledge base. Configure Google Maps API for live data.',
         hint:`请根据"${query}"的知识提供详细地点信息，然后使用add_activity添加到行程`
       })
@@ -877,6 +956,7 @@ const App = {
         abortCtrl.value = null;
         scrollBottom();
         await saveTrip();
+        await saveMessages();
       }
     }
 
@@ -1006,14 +1086,73 @@ const App = {
     /* =====================================================
        MAP
     ===================================================== */
+    function getSmartCenter() {
+      // 1. If current day has activities with locations, use their center
+      const day = selDay.value;
+      if (day) {
+        const locs = day.activities.filter(a => a.location).map(a => a.location);
+        if (locs.length) {
+          const lat = locs.reduce((s, l) => s + l.lat, 0) / locs.length;
+          const lng = locs.reduce((s, l) => s + l.lng, 0) / locs.length;
+          return { center: { lat, lng }, zoom: 12 };
+        }
+      }
+      // 2. Any day with locations
+      for (const d of trip.days) {
+        const locs = d.activities.filter(a => a.location).map(a => a.location);
+        if (locs.length) {
+          const lat = locs.reduce((s, l) => s + l.lat, 0) / locs.length;
+          const lng = locs.reduce((s, l) => s + l.lng, 0) / locs.length;
+          return { center: { lat, lng }, zoom: 11 };
+        }
+      }
+      // 3. User geolocation
+      if (userLoc.value) return { center: userLoc.value, zoom: 12 };
+      // 4. World view
+      return { center: { lat: 20, lng: 0 }, zoom: 2 };
+    }
+
+    function requestUserLocation() {
+      if (!navigator.geolocation) return;
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          userLoc.value = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+          if (mapInst && userLoc.value) showUserLocationMarker();
+          // If map is at world view, recenter
+          if (mapInst && mapInst.getZoom() <= 3) {
+            mapInst.setCenter(userLoc.value);
+            mapInst.setZoom(12);
+          }
+        },
+        () => {}, // silently ignore denial
+        { enableHighAccuracy: false, timeout: 8000 }
+      );
+    }
+
+    function showUserLocationMarker() {
+      if (!mapInst || !userLoc.value || !window.google) return;
+      if (userLocMarker) userLocMarker.setPosition(userLoc.value);
+      else {
+        userLocMarker = new window.google.maps.Marker({
+          position: userLoc.value, map: mapInst, title: '我的位置',
+          icon: {
+            path: window.google.maps.SymbolPath.CIRCLE,
+            fillColor: '#4285F4', fillOpacity: 1,
+            strokeColor: '#fff', strokeWeight: 3, scale: 8
+          }, zIndex: 999
+        });
+      }
+    }
+
     async function initMap() {
       if (!keys.maps) { mapErr.value = '请在设置中添加 Google Maps API Key'; return; }
-      if (mapReady.value || window.__baliMapLoading) return;
-      window.__baliMapLoading = true;
-      window.__baliMapInit = () => { mapReady.value = true; nextTick(() => renderMap()); };
+      if (mapReady.value || window.__tpMapLoading) return;
+      window.__tpMapLoading = true;
+      requestUserLocation();
+      window.__tpMapInit = () => { mapReady.value = true; nextTick(() => renderMap()); };
       const s = document.createElement('script');
-      s.src = `https://maps.googleapis.com/maps/api/js?key=${keys.maps}&libraries=places&callback=__baliMapInit`;
-      s.onerror = () => { mapErr.value = '地图加载失败，请检查 API Key'; window.__baliMapLoading = false; };
+      s.src = `https://maps.googleapis.com/maps/api/js?key=${keys.maps}&libraries=places&callback=__tpMapInit`;
+      s.onerror = () => { mapErr.value = '地图加载失败，请检查 API Key'; window.__tpMapLoading = false; };
       document.head.appendChild(s);
     }
 
@@ -1021,12 +1160,14 @@ const App = {
       const c = document.getElementById('map-canvas');
       if (!c || !window.google) return;
       if (!mapInst) {
+        const { center, zoom } = getSmartCenter();
         mapInst = new window.google.maps.Map(c, {
-          center:{ lat:-8.4095, lng:115.1889 }, zoom:11,
+          center, zoom,
           mapTypeControl:false, streetViewControl:false, fullscreenControl:false,
           styles: dark.value ? DARK_MAP : []
         });
         mapInfoWin = new window.google.maps.InfoWindow();
+        if (userLoc.value) showUserLocationMarker();
       }
       mapMarkers.forEach(m => m.setMap(null)); mapMarkers = [];
       mapPolylines.forEach(p => p.setMap(null)); mapPolylines = [];
@@ -1099,14 +1240,14 @@ const App = {
 
     function toggleDark() {
       dark.value = !dark.value; applyDark(dark.value);
-      localStorage.setItem('bali_dark', dark.value);
+      localStorage.setItem('tp_dark', dark.value);
     }
 
     function exportJSON() {
       const blob = new Blob([JSON.stringify(trip, null, 2)], { type:'application/json' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
-      a.download = `bali-trip-${new Date().toISOString().slice(0,10).replace(/-/g,'')}.json`;
+      a.download = `trip-${(trip.name||'export').replace(/\s+/g,'-')}-${new Date().toISOString().slice(0,10).replace(/-/g,'')}.json`;
       a.href = url; a.click(); URL.revokeObjectURL(url);
       toast('行程已导出', 'success');
     }
@@ -1131,14 +1272,14 @@ const App = {
       provider.value = p;
       const def = PROVIDERS[p].models.find(m => m.def);
       model.value = def?.id || PROVIDERS[p].models[0].id;
-      localStorage.setItem('bali_provider', p);
-      localStorage.setItem('bali_model', model.value);
+      localStorage.setItem('tp_provider', p);
+      localStorage.setItem('tp_model', model.value);
       showProv.value = false; showMdl.value = false;
     }
 
     function selectModel(m) {
       model.value = m;
-      localStorage.setItem('bali_model', m);
+      localStorage.setItem('tp_model', m);
       showMdl.value = false;
     }
 
@@ -1157,7 +1298,7 @@ const App = {
       screen, masterKey, dark, isDark,
       lockPw, setupPw, setupPw2, lockErr, setupErr, unlocking,
       showLockPw, showSetupPw,
-      activeTab, trip, versions, messages, chatInput, chatting, webSearch,
+      activeTab, trip, trips, activeTripIdx, showTripSwitcher, versions, messages, chatInput, chatting, webSearch,
       provider, model, showProv, showMdl, chatEndEl, chatScrollEl, chatInputEl,
       selDayId, selDay, expandedMap,
       showEditAct, editAct, ctxAct, ctxDay,
@@ -1178,7 +1319,7 @@ const App = {
       doAddDay, doAddAct,
       toggleDark, exportJSON, importJSON, doSaveKeys, doChangePw,
       selectProv, selectModel, restoreV,
-      installPWA, dismissA2HS, TOOLS
+      installPWA, dismissA2HS, switchTrip, addTrip, deleteTrip, saveMessages, TOOLS
     };
   },
 
@@ -1188,7 +1329,7 @@ const App = {
 <!-- ═══════════════════════════════════════════ LOCK SCREEN -->
 <div v-if="screen === 'lock'" class="flex flex-col items-center justify-center min-h-screen px-8 safe-top pb-8">
   <div class="w-16 h-16 mb-5 text-[#10a37f]" v-html="SVG.palm"></div>
-  <h1 :class="['text-2xl font-bold mb-1.5', isDark ? 'text-white' : 'text-[#1a1a1a]']">巴厘岛旅行规划</h1>
+  <h1 :class="['text-2xl font-bold mb-1.5', isDark ? 'text-white' : 'text-[#1a1a1a]']">旅行规划</h1>
   <p :class="['text-sm mb-8', isDark ? 'text-gray-400' : 'text-gray-500']">请输入主密码解锁</p>
   <div class="w-full max-w-[300px] space-y-3">
     <div class="relative">
@@ -1301,7 +1442,7 @@ const App = {
           <div v-if="!messages.length" class="flex flex-col items-center justify-center h-full text-center gap-4 pb-16">
             <div class="w-14 h-14 text-[#10a37f]" v-html="SVG.palm"></div>
             <div>
-              <h2 :class="['text-lg font-semibold mb-1', isDark ? 'text-gray-100' : 'text-[#1a1a1a]']">开始规划巴厘岛之旅</h2>
+              <h2 :class="['text-lg font-semibold mb-1', isDark ? 'text-gray-100' : 'text-[#1a1a1a]']">开始规划你的旅行</h2>
               <p :class="['text-sm leading-relaxed max-w-[240px]', isDark ? 'text-gray-400' : 'text-gray-500']">我可以帮您创建行程、搜索景点、安排餐厅、规划路线</p>
             </div>
             <div class="flex flex-wrap gap-2 justify-center">
@@ -1703,20 +1844,32 @@ const App = {
         </div>
         <div class="flex-1 scroll-y px-4 py-4 space-y-4 pb-safe">
 
-          <!-- Trip summary -->
+          <!-- Trip switcher (max 3) -->
           <div :class="['rounded-2xl border overflow-hidden', isDark ? 'border-gray-800' : 'border-gray-100']">
-            <div :class="['px-4 py-2 text-[10px] font-bold uppercase tracking-wider', isDark ? 'bg-[#1a1a1a] text-gray-500' : 'bg-[#F7F6F3] text-gray-400']">当前行程</div>
-            <div :class="['px-4 py-3.5', isDark ? 'bg-[#111]' : 'bg-white']">
-              <div v-if="trip.name">
-                <p class="font-semibold text-[14px]">{{ trip.name }}</p>
-                <p :class="['text-[12px] mt-1', isDark ? 'text-gray-400' : 'text-gray-500']">
-                  {{ trip.destination }} · {{ trip.days.length }} 天 · {{ allActs.length }} 个活动
-                </p>
-                <p v-if="trip.startDate" :class="['text-[12px] mt-0.5', isDark ? 'text-gray-500' : 'text-gray-400']">
-                  {{ formatDate(trip.startDate) }} — {{ formatDate(trip.endDate) }}
-                </p>
+            <div :class="['px-4 py-2 text-[10px] font-bold uppercase tracking-wider flex items-center justify-between', isDark ? 'bg-[#1a1a1a] text-gray-500' : 'bg-[#F7F6F3] text-gray-400']">
+              <span>旅行计划（{{ trips.length }}/3）</span>
+              <button v-if="trips.length < 3" @click="addTrip" class="text-[#10a37f] text-[11px] font-semibold press-sm flex items-center gap-0.5">
+                <span class="w-3 h-3" v-html="SVG.plus"></span> 新建
+              </button>
+            </div>
+            <div :class="['divide-y', isDark ? 'divide-gray-800' : 'divide-gray-100']">
+              <div v-for="(t, idx) in trips" :key="idx" @click="switchTrip(idx)"
+                :class="['px-4 py-3 flex items-center gap-3 cursor-pointer press transition', isDark ? 'bg-[#111]' : 'bg-white',
+                  idx === activeTripIdx ? (isDark ? 'border-l-2 border-[#10a37f]' : 'border-l-2 border-[#10a37f]') : 'border-l-2 border-transparent']">
+                <div class="flex-1 min-w-0">
+                  <p :class="['text-[14px] truncate', idx === activeTripIdx ? 'font-semibold' : 'font-medium']">
+                    {{ t.name || '新计划' }}
+                  </p>
+                  <p :class="['text-[11px] mt-0.5', isDark ? 'text-gray-500' : 'text-gray-400']">
+                    {{ t.destination || '未设目的地' }} · {{ t.days?.length || 0 }} 天 · {{ (t.days||[]).reduce((s,d)=>s+(d.activities||[]).length,0) }} 个活动
+                  </p>
+                </div>
+                <span v-if="idx === activeTripIdx" class="text-[#10a37f] text-[11px] font-semibold flex-shrink-0">当前</span>
+                <button v-if="trips.length > 1" @click.stop="deleteTrip(idx)"
+                  :class="['flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center press-sm', isDark ? 'text-gray-600 hover:text-red-400' : 'text-gray-300 hover:text-red-500']">
+                  <span class="w-3.5 h-3.5" v-html="SVG.trash"></span>
+                </button>
               </div>
-              <p v-else :class="['text-[13px]', isDark ? 'text-gray-500' : 'text-gray-400']">尚未创建行程，和 AI 对话开始规划吧</p>
             </div>
           </div>
 
@@ -1838,7 +1991,7 @@ const App = {
             </div>
           </div>
 
-          <p :class="['text-center text-[11px] pb-8 mt-2', isDark ? 'text-gray-700' : 'text-gray-300']">巴厘岛旅行规划 · 数据本地加密存储</p>
+          <p :class="['text-center text-[11px] pb-8 mt-2', isDark ? 'text-gray-700' : 'text-gray-300']">旅行规划 · 数据本地加密存储</p>
         </div>
       </div>
 
