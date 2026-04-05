@@ -323,9 +323,10 @@ const App = {
 
     async function switchTrip(idx) {
       if (idx === activeTripIdx.value) return;
-      // Save current trip data + messages
+      // Save current trip data + messages + versions
       trips.value[activeTripIdx.value] = JSON.parse(JSON.stringify(trip));
       await saveMessages();
+      await saveVersions();
       // Load selected trip
       activeTripIdx.value = idx;
       Object.assign(trip, JSON.parse(JSON.stringify(trips.value[idx])));
@@ -334,6 +335,7 @@ const App = {
       showTripSwitcher.value = false;
       await saveAllTrips();
       await loadMessages();
+      await loadVersions();
       toast('已切换到：' + (trip.name || '新计划'), 'info');
     }
 
@@ -346,6 +348,7 @@ const App = {
       Object.assign(trip, nt);
       selDayId.value = '';
       messages.value = [];
+      versions.value = [];
       showTripSwitcher.value = false;
       saveAllTrips();
       toast('已创建新计划', 'success');
@@ -364,6 +367,8 @@ const App = {
         else selDayId.value = '';
         messages.value = [];
         loadMessages();
+        versions.value = [];
+        loadVersions();
       }
       showTripSwitcher.value = false;
       saveAllTrips();
@@ -571,15 +576,17 @@ const App = {
         }
         const keysRaw = localStorage.getItem('tp_keys') || localStorage.getItem('bali_keys');
         if (keysRaw) Object.assign(keys, await decryptData(key, keysRaw));
-        const vRaw = localStorage.getItem('tp_versions') || localStorage.getItem('bali_versions');
+        // Load per-trip versions, falling back to global legacy key
+        const vKey = trip.id || `trip_${activeTripIdx.value}`;
+        const vRaw = localStorage.getItem(`tp_versions_${vKey}`) || localStorage.getItem('tp_versions') || localStorage.getItem('bali_versions');
         if (vRaw) versions.value = await decryptData(key, vRaw);
+        masterKey.value = key;
         // Migrate legacy keys to new namespace
         if (localStorage.getItem('bali_has_password') && !localStorage.getItem('tp_has_password')) {
           localStorage.setItem('tp_has_password', 'true');
           localStorage.setItem('tp_salt', localStorage.getItem('bali_salt') || '');
           await saveTrip(); await saveKeys(); await saveVersions();
         }
-        masterKey.value = key;
         lockPw.value = '';
         provider.value = localStorage.getItem('tp_provider') || 'openai';
         model.value = localStorage.getItem('tp_model') || 'gpt-4o-mini';
@@ -611,7 +618,17 @@ const App = {
     }
     async function saveVersions() {
       if (!masterKey.value) return;
-      localStorage.setItem('tp_versions', await encryptData(masterKey.value, versions.value));
+      const vKey = trip.id || `trip_${activeTripIdx.value}`;
+      localStorage.setItem(`tp_versions_${vKey}`, await encryptData(masterKey.value, versions.value));
+    }
+    async function loadVersions() {
+      if (!masterKey.value) return;
+      const vKey = trip.id || `trip_${activeTripIdx.value}`;
+      const raw = localStorage.getItem(`tp_versions_${vKey}`);
+      if (raw) {
+        try { versions.value = await decryptData(masterKey.value, raw); }
+        catch { versions.value = []; }
+      } else { versions.value = []; }
     }
     async function saveMessages() {
       if (!masterKey.value) return;
