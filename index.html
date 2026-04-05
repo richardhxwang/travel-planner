@@ -6,7 +6,8 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="巴厘岛之旅">
-<meta name="theme-color" content="#ffffff" id="themeColorMeta">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" id="themeColorMeta">
+<meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
 <title>巴厘岛旅行规划</title>
 <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%8F%9D%EF%B8%8F%3C/text%3E%3C/svg%3E">
 <link rel="manifest" href="data:application/manifest+json,%7B%22name%22%3A%22%E5%B7%B4%E5%8E%98%E5%B2%9B%E6%97%85%E8%A1%8C%E8%A7%84%E5%88%92%22%2C%22short_name%22%3A%22%E5%B7%B4%E5%8E%98%E5%B2%9B%22%2C%22start_url%22%3A%22.%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%23ffffff%22%2C%22theme_color%22%3A%22%23ffffff%22%7D">
@@ -14,6 +15,30 @@
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 <script type="importmap">{"imports":{"vue":"https://unpkg.com/vue@3/dist/vue.esm-browser.js"}}</script>
 <style>
+:root {
+  --accent: #10a37f;
+  --accent-light: #d7f4eb;
+  --bg: #ffffff;
+  --bg2: #f4f4f5;
+  --bg3: #e8e8e8;
+  --fg: #1a1a1a;
+  --fg2: #6b6b6b;
+  --fg3: #9b9b9b;
+  --border: #d9d9d9;
+  --card: #f7f7f8;
+}
+html.dark {
+  --accent: #10a37f;
+  --accent-light: #10a37f22;
+  --bg: #000000;
+  --bg2: #1a1a1a;
+  --bg3: #2e2e2e;
+  --fg: #e8e8e8;
+  --fg2: #9b9b9b;
+  --fg3: #6b6b6b;
+  --border: #2e2e2e;
+  --card: #1a1a1a;
+}
 * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
 body { font-family: -apple-system, 'Inter', 'SF Pro Text', sans-serif; overscroll-behavior: none; }
 .safe-top { padding-top: max(env(safe-area-inset-top, 0px), 12px); }
@@ -50,7 +75,7 @@ body { font-family: -apple-system, 'Inter', 'SF Pro Text', sans-serif; overscrol
 .dark .prose-chat code { background: rgba(255,255,255,0.1); }
 .dark .prose-chat pre { background: rgba(255,255,255,0.06); }
 .prose-chat blockquote { border-left: 3px solid #d1d5db; padding-left: 10px; color: #6b7280; margin: 0.4em 0; }
-.prose-chat a { color: #3b82f6; text-decoration: underline; }
+.prose-chat a { color: #10a37f; text-decoration: underline; }
 .prose-chat hr { border: none; border-top: 1px solid #e5e7eb; margin: 0.6em 0; }
 
 /* Timeline dot */
@@ -86,7 +111,7 @@ body { font-family: -apple-system, 'Inter', 'SF Pro Text', sans-serif; overscrol
 .chev.open { transform: rotate(180deg); }
 
 /* Dark mode */
-html.dark body { background: #191919; color: #E3E2DE; }
+html.dark body { background: var(--bg); color: var(--fg); }
 
 /* Line clamp */
 .line-clamp-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
@@ -186,14 +211,50 @@ const AI_TOOLS = [
 ];
 
 /* =====================================================
+   SVG ICONS (SF Symbols–style, stroke 1.5px, round caps)
+===================================================== */
+const SVG = {
+  ai: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a4 4 0 0 1 4 4v1a3 3 0 0 1 3 3v1a3 3 0 0 1-1.1 2.3A4 4 0 0 1 14 18H10a4 4 0 0 1-3.9-4.7A3 3 0 0 1 5 11v-1a3 3 0 0 1 3-3V6a4 4 0 0 1 4-4z"/><circle cx="9" cy="13" r="1"/><circle cx="15" cy="13" r="1"/></svg>',
+  timeline: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/><path d="M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01"/></svg>',
+  map: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1 6v16l7-4 8 4 7-4V2l-7 4-8-4-7 4z"/><path d="M8 2v16M16 6v16"/></svg>',
+  browse: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>',
+  settings: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>',
+  attraction: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 20h20"/><path d="M5 20V8l7-5 7 5v12"/><path d="M9 20v-5h6v5"/><path d="M9 12h.01M15 12h.01"/></svg>',
+  restaurant: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><path d="M6 1v3M10 1v3M14 1v3"/></svg>',
+  transport: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17m-2 0a2 2 0 1 0 4 0 2 2 0 1 0-4 0"/><path d="M17 17m-2 0a2 2 0 1 0 4 0 2 2 0 1 0-4 0"/><path d="M5 17H3V6a2 2 0 0 1 2-2h9v13M15 5h2l3 5v7h-2"/></svg>',
+  hotel: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21V7a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v14"/><path d="M3 11h18"/><path d="M7 11V7M12 11V7M17 11V7"/><path d="M7 15h.01M12 15h.01M17 15h.01M7 19h.01M12 19h.01M17 19h.01"/></svg>',
+  other: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12S4 16 4 10a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="3"/></svg>',
+  search: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>',
+  globe: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>',
+  tool: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91A6 6 0 0 1 18.47 2.53l-3.77 3.77z"/></svg>',
+  plus: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>',
+  send: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg>',
+  stop: '<svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>',
+  lock: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>',
+  key: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.78 7.78 5.5 5.5 0 0 1 7.78-7.78zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>',
+  export: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>',
+  import: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>',
+  history: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>',
+  tip: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 22h4"/><path d="M12 2a7 7 0 0 1 4 12.7V17H8v-2.3A7 7 0 0 1 12 2z"/></svg>',
+  edit: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>',
+  trash: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>',
+  chevDown: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>',
+  star: '<svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 22 12 18.56 5.82 22 7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>',
+  driving: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17m-2 0a2 2 0 1 0 4 0 2 2 0 1 0-4 0"/><path d="M17 17m-2 0a2 2 0 1 0 4 0 2 2 0 1 0-4 0"/><path d="M5 17H3V6a2 2 0 0 1 2-2h9v13M15 5h2l3 5v7h-2"/></svg>',
+  walking: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="13" cy="4" r="2"/><path d="M10 22l2-7 4 3v6"/><path d="M15 13l-4-1-3 5"/><path d="M9.5 8.5L12 12l3-2"/></svg>',
+  transit: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="14" rx="2"/><path d="M4 10h16"/><circle cx="8" cy="14" r="1"/><circle cx="16" cy="14" r="1"/><path d="M8 17l-2 4M16 17l2 4"/></svg>',
+  palm: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M13 8c0-2.76-2.46-5-5.5-5S2 5.24 2 8h2l1-1 1 1h4"/><path d="M13 7.14A5.82 5.82 0 0 1 16.5 6c3.04 0 5.5 2.24 5.5 5h-3l-1-1-1 1h-4"/><path d="M12 22V10"/></svg>',
+};
+
+/* =====================================================
    ACTIVITY META
 ===================================================== */
 const TYPE_META = {
-  attraction:{ icon:'🏛️', color:'#3B82F6', bg:'#EFF6FF', label:'景点' },
-  restaurant: { icon:'🍽️', color:'#F97316', bg:'#FFF7ED', label:'餐厅' },
-  transport:  { icon:'🚗', color:'#6B7280', bg:'#F9FAFB', label:'交通' },
-  hotel:      { icon:'🏨', color:'#8B5CF6', bg:'#F5F3FF', label:'酒店' },
-  other:      { icon:'📍', color:'#10B981', bg:'#ECFDF5', label:'其他' }
+  attraction:{ icon: SVG.attraction, color:'#3B82F6', bg:'#EFF6FF', label:'景点' },
+  restaurant: { icon: SVG.restaurant, color:'#F97316', bg:'#FFF7ED', label:'餐厅' },
+  transport:  { icon: SVG.transport, color:'#6B7280', bg:'#F9FAFB', label:'交通' },
+  hotel:      { icon: SVG.hotel, color:'#8B5CF6', bg:'#F5F3FF', label:'酒店' },
+  other:      { icon: SVG.other, color:'#10B981', bg:'#ECFDF5', label:'其他' }
 };
 
 const MUTATING_TOOLS = new Set(['create_trip','update_trip','add_day','update_day','delete_day','duplicate_day','reorder_day','add_activity','update_activity','delete_activity','move_activity','batch_update','restore_version','add_tip','delete_tip']);
@@ -296,6 +357,9 @@ const App = {
     const showAddAct   = ref(false);
     const newAct       = reactive({ time:'09:00', endTime:'', type:'attraction', name:'', address:'', notes:'' });
 
+    /* ---- Map Detail Sheet ---- */
+    const mapDetailAct = ref(null);
+
     /* ---- Map State ---- */
     const mapReady     = ref(false);
     const mapErr       = ref('');
@@ -311,6 +375,13 @@ const App = {
 
     /* ---- Versions UI ---- */
     const showVers     = ref(false);
+
+    /* ---- PWA Install ---- */
+    const showA2HS     = ref(false);
+    let deferredPrompt = null;
+
+    /* ---- Offline State ---- */
+    const isOffline    = ref(!navigator.onLine);
 
     /* ---- Toasts ---- */
     const toasts       = ref([]);
@@ -365,11 +436,44 @@ const App = {
       dark.value = d; applyDark(d);
       if (!localStorage.getItem('bali_has_password')) screen.value = 'setup';
       else screen.value = 'lock';
+
+      // Offline detection
+      window.addEventListener('online', () => { isOffline.value = false; toast('网络已恢复', 'success'); });
+      window.addEventListener('offline', () => { isOffline.value = true; toast('网络已断开，部分功能不可用', 'error', 4000); });
+
+      // PWA install prompt
+      const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+      const a2hsDismissed = localStorage.getItem('bali_a2hs_dismissed');
+      if (!isStandalone && !a2hsDismissed) {
+        // Android: capture beforeinstallprompt
+        window.addEventListener('beforeinstallprompt', (e) => {
+          e.preventDefault();
+          deferredPrompt = e;
+          showA2HS.value = true;
+        });
+        // iOS Safari: show manual guide after 3s
+        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+        if (isIOS) setTimeout(() => { if (!showA2HS.value) showA2HS.value = true; }, 3000);
+      }
     });
+
+    function installPWA() {
+      if (deferredPrompt) {
+        deferredPrompt.prompt();
+        deferredPrompt.userChoice.then(() => { deferredPrompt = null; showA2HS.value = false; });
+      } else {
+        // iOS — just dismiss, the banner already shows instructions
+        showA2HS.value = false;
+      }
+    }
+    function dismissA2HS() {
+      showA2HS.value = false;
+      localStorage.setItem('bali_a2hs_dismissed', 'true');
+    }
 
     function applyDark(v) {
       document.documentElement.classList.toggle('dark', v);
-      document.getElementById('themeColorMeta').content = v ? '#191919' : '#ffffff';
+      document.getElementById('themeColorMeta').content = v ? '#000000' : '#ffffff';
     }
 
     /* =====================================================
@@ -743,6 +847,9 @@ const App = {
     async function sendMessage() {
       const txt = chatInput.value.trim();
       if (!txt || chatting.value) return;
+      if (!navigator.onLine) {
+        toast('当前处于离线状态，无法使用 AI', 'error'); return;
+      }
       if (!apiKey.value) {
         toast('请在设置中配置 ' + pCfg.value.name + ' API Key', 'error');
         activeTab.value = 'more'; return;
@@ -808,7 +915,7 @@ const App = {
         catch(e) { result = { error: e.message }; }
 
         toolResults.push({ id:tc.id, name, result });
-        toast(`🔧 ${name}`, 'info', 1500);
+        toast(`${name}`, 'info', 1500);
       }
 
       // Record this turn's tool calls for message history reconstruction
@@ -941,8 +1048,7 @@ const App = {
           }
         });
         mk.addListener('click', () => {
-          mapInfoWin.setContent(`<div style="font-size:13px;font-weight:600;max-width:160px">${a.name}</div><div style="font-size:11px;color:#6b7280;margin-top:2px">${a.time}${a.address ? ' · ' + a.address : ''}</div>`);
-          mapInfoWin.open(mapInst, mk);
+          mapDetailAct.value = a;
         });
         mapMarkers.push(mk);
       });
@@ -1057,12 +1163,12 @@ const App = {
       showEditAct, editAct, ctxAct, ctxDay,
       showAddDay, addDayDate, addDayTitle,
       showAddAct, newAct,
-      mapReady, mapErr,
+      mapReady, mapErr, mapDetailAct,
       browseCat, browseQ, browseCats, filteredActs, allActs,
       showVers,
       showChgPw, newPw, newPw2, keys, keysSaved, showKeyVis,
-      toasts, quickChips, showPostChips,
-      PROVIDERS, TYPE_META,
+      toasts, quickChips, showPostChips, showA2HS, isOffline,
+      PROVIDERS, TYPE_META, SVG,
       formatDate, formatDateShort, formatTs, renderMd, tcArgSummary,
       // methods
       doSetup, doUnlock, doLock,
@@ -1072,29 +1178,29 @@ const App = {
       doAddDay, doAddAct,
       toggleDark, exportJSON, importJSON, doSaveKeys, doChangePw,
       selectProv, selectModel, restoreV,
-      TOOLS
+      installPWA, dismissA2HS, TOOLS
     };
   },
 
   template: `
-<div :class="['min-h-screen', isDark ? 'bg-[#191919] text-[#E3E2DE]' : 'bg-white text-[#37352F]']">
+<div :class="['min-h-screen', isDark ? 'bg-[#000] text-[#e8e8e8]' : 'bg-white text-[#1a1a1a]']">
 
 <!-- ═══════════════════════════════════════════ LOCK SCREEN -->
 <div v-if="screen === 'lock'" class="flex flex-col items-center justify-center min-h-screen px-8 safe-top pb-8">
-  <div class="text-6xl mb-5">🏝️</div>
-  <h1 :class="['text-2xl font-bold mb-1.5', isDark ? 'text-white' : 'text-[#37352F]']">巴厘岛旅行规划</h1>
+  <div class="w-16 h-16 mb-5 text-[#10a37f]" v-html="SVG.palm"></div>
+  <h1 :class="['text-2xl font-bold mb-1.5', isDark ? 'text-white' : 'text-[#1a1a1a]']">巴厘岛旅行规划</h1>
   <p :class="['text-sm mb-8', isDark ? 'text-gray-400' : 'text-gray-500']">请输入主密码解锁</p>
   <div class="w-full max-w-[300px] space-y-3">
     <div class="relative">
       <input v-model="lockPw" :type="showLockPw ? 'text' : 'password'" placeholder="主密码" @keyup.enter="doUnlock"
-        :class="['w-full px-4 py-3.5 pr-12 rounded-2xl border text-base outline-none transition', isDark ? 'bg-[#2F2F2F] border-gray-600 text-white placeholder-gray-500 focus:border-blue-400' : 'bg-[#F7F6F3] border-gray-200 placeholder-gray-400 focus:border-blue-400']" />
+        :class="['w-full px-4 py-3.5 pr-12 rounded-2xl border text-base outline-none transition', isDark ? 'bg-[#1a1a1a] border-gray-600 text-white placeholder-gray-500 focus:border-[#10a37f]' : 'bg-[#F7F6F3] border-gray-200 placeholder-gray-400 focus:border-[#10a37f]']" />
       <button @click="showLockPw = !showLockPw" class="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 text-lg leading-none">
         {{ showLockPw ? '🙈' : '👁️' }}
       </button>
     </div>
     <p v-if="lockErr" class="text-red-500 text-sm text-center">{{ lockErr }}</p>
     <button @click="doUnlock" :disabled="unlocking"
-      class="w-full py-3.5 rounded-2xl bg-blue-500 text-white font-semibold text-base press transition disabled:opacity-60">
+      class="w-full py-3.5 rounded-2xl bg-[#10a37f] text-white font-semibold text-base press transition disabled:opacity-60">
       <span v-if="unlocking" class="flex items-center justify-center gap-2">
         <svg class="spinner w-4 h-4" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/></svg>
         解锁中…
@@ -1106,21 +1212,21 @@ const App = {
 
 <!-- ═══════════════════════════════════════════ SETUP SCREEN -->
 <div v-else-if="screen === 'setup'" class="flex flex-col items-center justify-center min-h-screen px-8 safe-top pb-8">
-  <div class="text-6xl mb-5">🔐</div>
-  <h1 :class="['text-2xl font-bold mb-1.5', isDark ? 'text-white' : 'text-[#37352F]']">设置主密码</h1>
+  <div class="w-16 h-16 mb-5 text-[#10a37f]" v-html="SVG.lock"></div>
+  <h1 :class="['text-2xl font-bold mb-1.5', isDark ? 'text-white' : 'text-[#1a1a1a]']">设置主密码</h1>
   <p :class="['text-sm mb-8 text-center leading-relaxed', isDark ? 'text-gray-400' : 'text-gray-500']">用于加密保护您的 API Keys<br>请务必记住此密码</p>
   <div class="w-full max-w-[300px] space-y-3">
     <div class="relative">
       <input v-model="setupPw" :type="showSetupPw ? 'text' : 'password'" placeholder="设置密码（至少4位）"
-        :class="['w-full px-4 py-3.5 pr-12 rounded-2xl border text-base outline-none', isDark ? 'bg-[#2F2F2F] border-gray-600 text-white placeholder-gray-500' : 'bg-[#F7F6F3] border-gray-200 placeholder-gray-400']" />
+        :class="['w-full px-4 py-3.5 pr-12 rounded-2xl border text-base outline-none', isDark ? 'bg-[#1a1a1a] border-gray-600 text-white placeholder-gray-500' : 'bg-[#F7F6F3] border-gray-200 placeholder-gray-400']" />
       <button @click="showSetupPw = !showSetupPw" class="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 text-lg leading-none">
         {{ showSetupPw ? '🙈' : '👁️' }}
       </button>
     </div>
     <input v-model="setupPw2" :type="showSetupPw ? 'text' : 'password'" placeholder="确认密码" @keyup.enter="doSetup"
-      :class="['w-full px-4 py-3.5 rounded-2xl border text-base outline-none', isDark ? 'bg-[#2F2F2F] border-gray-600 text-white placeholder-gray-500' : 'bg-[#F7F6F3] border-gray-200 placeholder-gray-400']" />
+      :class="['w-full px-4 py-3.5 rounded-2xl border text-base outline-none', isDark ? 'bg-[#1a1a1a] border-gray-600 text-white placeholder-gray-500' : 'bg-[#F7F6F3] border-gray-200 placeholder-gray-400']" />
     <p v-if="setupErr" class="text-red-500 text-sm text-center">{{ setupErr }}</p>
-    <button @click="doSetup" class="w-full py-3.5 rounded-2xl bg-blue-500 text-white font-semibold text-base press transition">
+    <button @click="doSetup" class="w-full py-3.5 rounded-2xl bg-[#10a37f] text-white font-semibold text-base press transition">
       开始使用 🚀
     </button>
   </div>
@@ -1128,6 +1234,13 @@ const App = {
 
 <!-- ═══════════════════════════════════════════ MAIN APP -->
 <div v-else class="flex flex-col h-screen max-h-screen">
+
+  <!-- Offline banner -->
+  <transition name="fade">
+    <div v-if="isOffline" class="flex-shrink-0 bg-amber-500 text-white text-center py-2 text-[12px] font-medium safe-top">
+      📡 离线模式 — 浏览和编辑行程仍可使用，AI 和地图需要网络
+    </div>
+  </transition>
 
   <!-- ── Content ── -->
   <div class="flex-1 overflow-hidden relative">
@@ -1137,27 +1250,27 @@ const App = {
       <div v-if="activeTab === 'ai'" key="ai" class="absolute inset-0 flex flex-col">
 
         <!-- Header -->
-        <div :class="['flex items-center gap-2 px-4 border-b safe-top pb-3 flex-shrink-0', isDark ? 'bg-[#191919] border-gray-800' : 'bg-white border-gray-100']">
-          <span class="text-[15px] font-semibold flex-1">🤖 AI 助手</span>
+        <div :class="['flex items-center gap-2 px-4 border-b safe-top pb-3 flex-shrink-0', isDark ? 'bg-[#000] border-gray-800' : 'bg-white border-gray-100']">
+          <span class="text-[15px] font-semibold flex-1 flex items-center gap-1.5"><span class="w-4.5 h-4.5 text-[#10a37f]" v-html="SVG.ai"></span> AI 助手</span>
 
           <!-- Web search toggle -->
           <button @click="webSearch = !webSearch" :title="webSearch ? '关闭网络搜索' : '开启网络搜索'"
-            :class="['w-8 h-8 rounded-full flex items-center justify-center text-[14px] press-sm transition flex-shrink-0', webSearch ? 'bg-blue-500' : isDark ? 'bg-[#2F2F2F]' : 'bg-[#F7F6F3]']">
-            🌐
+            :class="['w-8 h-8 rounded-full flex items-center justify-center text-[14px] press-sm transition flex-shrink-0', webSearch ? 'bg-[#d7f4eb]0' : isDark ? 'bg-[#1a1a1a]' : 'bg-[#F7F6F3]']">
+            <span class="w-4 h-4" v-html="SVG.globe"></span>
           </button>
 
           <!-- Provider selector -->
           <div class="relative">
             <button @click="showProv = !showProv; showMdl = false"
-              :class="['flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-xs font-medium press-sm transition', isDark ? 'bg-[#2F2F2F] text-gray-200' : 'bg-[#F7F6F3] text-[#37352F]']">
+              :class="['flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-xs font-medium press-sm transition', isDark ? 'bg-[#1a1a1a] text-gray-200' : 'bg-[#F7F6F3] text-[#37352F]']">
               {{ PROVIDERS[provider].name }}
               <svg class="w-3 h-3 opacity-40 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/></svg>
             </button>
             <transition name="fade">
-              <div v-if="showProv" :class="['absolute right-0 top-full mt-1.5 w-32 rounded-2xl shadow-xl border overflow-hidden z-50', isDark ? 'bg-[#2F2F2F] border-gray-700' : 'bg-white border-gray-100']">
+              <div v-if="showProv" :class="['absolute right-0 top-full mt-1.5 w-32 rounded-2xl shadow-xl border overflow-hidden z-50', isDark ? 'bg-[#1a1a1a] border-gray-700' : 'bg-white border-gray-100']">
                 <button v-for="(cfg, key) in PROVIDERS" :key="key" @click="selectProv(key)"
-                  :class="['w-full px-3 py-2.5 text-left text-sm flex items-center justify-between transition', isDark ? 'hover:bg-gray-700/50' : 'hover:bg-gray-50', provider === key ? 'font-semibold text-blue-500' : '']">
-                  {{ cfg.name }}<span v-if="provider === key" class="text-blue-500 text-xs ml-1">✓</span>
+                  :class="['w-full px-3 py-2.5 text-left text-sm flex items-center justify-between transition', isDark ? 'hover:bg-gray-700/50' : 'hover:bg-gray-50', provider === key ? 'font-semibold text-[#10a37f]' : '']">
+                  {{ cfg.name }}<span v-if="provider === key" class="text-[#10a37f] text-xs ml-1">✓</span>
                 </button>
               </div>
             </transition>
@@ -1166,14 +1279,14 @@ const App = {
           <!-- Model selector -->
           <div class="relative">
             <button @click="showMdl = !showMdl; showProv = false"
-              :class="['flex items-center gap-1 px-2 py-1.5 rounded-xl text-[11px] press-sm transition max-w-[88px]', isDark ? 'bg-[#2F2F2F] text-gray-300' : 'bg-[#F7F6F3] text-gray-600']">
+              :class="['flex items-center gap-1 px-2 py-1.5 rounded-xl text-[11px] press-sm transition max-w-[88px]', isDark ? 'bg-[#1a1a1a] text-gray-300' : 'bg-[#F7F6F3] text-gray-600']">
               <span class="truncate">{{ PROVIDERS[provider].models.find(m => m.id === model)?.label || model }}</span>
               <svg class="w-3 h-3 flex-shrink-0 opacity-40" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/></svg>
             </button>
             <transition name="fade">
-              <div v-if="showMdl" :class="['absolute right-0 top-full mt-1.5 w-52 rounded-2xl shadow-xl border overflow-hidden z-50', isDark ? 'bg-[#2F2F2F] border-gray-700' : 'bg-white border-gray-100']">
+              <div v-if="showMdl" :class="['absolute right-0 top-full mt-1.5 w-52 rounded-2xl shadow-xl border overflow-hidden z-50', isDark ? 'bg-[#1a1a1a] border-gray-700' : 'bg-white border-gray-100']">
                 <button v-for="m in PROVIDERS[provider].models" :key="m.id" @click="selectModel(m.id)"
-                  :class="['w-full px-3 py-2.5 text-left text-sm flex items-center justify-between transition', isDark ? 'hover:bg-gray-700/50' : 'hover:bg-gray-50', model === m.id ? 'text-blue-500 font-semibold' : '']">
+                  :class="['w-full px-3 py-2.5 text-left text-sm flex items-center justify-between transition', isDark ? 'hover:bg-gray-700/50' : 'hover:bg-gray-50', model === m.id ? 'text-[#10a37f] font-semibold' : '']">
                   {{ m.label }}<span v-if="m.def" class="text-[10px] text-gray-400 ml-1">默认</span>
                 </button>
               </div>
@@ -1186,14 +1299,14 @@ const App = {
 
           <!-- Empty state -->
           <div v-if="!messages.length" class="flex flex-col items-center justify-center h-full text-center gap-4 pb-16">
-            <div class="text-6xl">🏝️</div>
+            <div class="w-14 h-14 text-[#10a37f]" v-html="SVG.palm"></div>
             <div>
-              <h2 :class="['text-lg font-semibold mb-1', isDark ? 'text-gray-100' : 'text-[#37352F]']">开始规划巴厘岛之旅</h2>
+              <h2 :class="['text-lg font-semibold mb-1', isDark ? 'text-gray-100' : 'text-[#1a1a1a]']">开始规划巴厘岛之旅</h2>
               <p :class="['text-sm leading-relaxed max-w-[240px]', isDark ? 'text-gray-400' : 'text-gray-500']">我可以帮您创建行程、搜索景点、安排餐厅、规划路线</p>
             </div>
             <div class="flex flex-wrap gap-2 justify-center">
               <button v-for="c in quickChips" :key="c" @click="sendChip(c)"
-                :class="['px-3 py-2 rounded-full text-[13px] border press-sm transition', isDark ? 'border-gray-600 text-gray-300 bg-[#2F2F2F]' : 'border-gray-200 text-gray-600 bg-white']">
+                :class="['px-3 py-2 rounded-full text-[13px] border press-sm transition', isDark ? 'border-gray-600 text-gray-300 bg-[#1a1a1a]' : 'border-gray-200 text-gray-600 bg-white']">
                 {{ c }}
               </button>
             </div>
@@ -1202,9 +1315,9 @@ const App = {
           <!-- Message list -->
           <template v-for="(msg, idx) in messages" :key="idx">
 
-            <!-- User message -->
+            <!-- User message (LumiChat pill) -->
             <div v-if="msg.role === 'user'" class="flex justify-end">
-              <div class="max-w-[82%] px-4 py-2.5 rounded-2xl rounded-tr-md bg-blue-500 text-white text-[14px] leading-relaxed whitespace-pre-wrap">{{ msg.content }}</div>
+              <div :class="['max-w-[82%] px-4 py-2.5 rounded-[20px] rounded-br-md text-[14px] leading-relaxed whitespace-pre-wrap', isDark ? 'bg-[#10a37f] text-white' : 'bg-[#10a37f] text-white']">{{ msg.content }}</div>
             </div>
 
             <!-- Assistant message -->
@@ -1212,15 +1325,15 @@ const App = {
               <!-- Tool call chips -->
               <div v-if="msg.toolCalls && msg.toolCalls.length" class="flex flex-wrap gap-1.5">
                 <div v-for="tc in msg.toolCalls" :key="tc.id"
-                  :class="['rounded-xl px-3 py-1.5 text-[11px] flex items-center gap-1.5 border max-w-full', isDark ? 'bg-[#2F2F2F] border-gray-700' : 'bg-[#F7F6F3] border-gray-200']">
-                  <span class="text-sm flex-shrink-0">🔧</span>
-                  <span :class="['font-mono font-medium flex-shrink-0', isDark ? 'text-blue-300' : 'text-blue-600']">{{ tc.function.name }}</span>
+                  :class="['rounded-xl px-3 py-1.5 text-[11px] flex items-center gap-1.5 border max-w-full', isDark ? 'bg-[#1a1a1a] border-gray-700' : 'bg-[#F7F6F3] border-gray-200']">
+                  <span class="w-3.5 h-3.5 flex-shrink-0 text-[#10a37f]" v-html="SVG.tool"></span>
+                  <span :class="['font-mono font-medium flex-shrink-0', isDark ? 'text-[#5ae0be]' : 'text-[#10a37f]']">{{ tc.function.name }}</span>
                   <span :class="['truncate', isDark ? 'text-gray-500' : 'text-gray-400']" style="max-width:140px">{{ tcArgSummary(tc.function.arguments) }}</span>
                 </div>
               </div>
               <!-- Text bubble -->
               <div v-if="msg.content || msg.isStreaming"
-                :class="['max-w-[92%] px-4 py-3 rounded-2xl rounded-tl-md text-[14px]', isDark ? 'bg-[#2F2F2F]' : 'bg-[#F7F6F3]']">
+                :class="['max-w-[92%] px-4 py-3 rounded-[20px] rounded-tl-md text-[14px]', isDark ? 'bg-[#1a1a1a]' : 'bg-[#f4f4f5]']">
                 <div v-if="msg.content" class="prose-chat" v-html="renderMd(msg.content)"></div>
                 <div v-else-if="msg.isStreaming" class="flex gap-1.5 items-center py-1">
                   <span v-for="i in 3" :key="i" :class="['pdot w-2 h-2 rounded-full', isDark ? 'bg-gray-500' : 'bg-gray-400']"></span>
@@ -1233,7 +1346,7 @@ const App = {
           <!-- Post-response quick chips -->
           <div v-if="showPostChips" class="flex flex-wrap gap-2 pt-1">
             <button v-for="c in quickChips" :key="c" @click="sendChip(c)"
-              :class="['px-3 py-1.5 rounded-full text-[12px] border press-sm transition', isDark ? 'border-gray-700 text-gray-400 bg-[#2F2F2F]' : 'border-gray-200 text-gray-500 bg-white']">
+              :class="['px-3 py-1.5 rounded-full text-[12px] border press-sm transition', isDark ? 'border-gray-700 text-gray-400 bg-[#1a1a1a]' : 'border-gray-200 text-gray-500 bg-white']">
               {{ c }}
             </button>
           </div>
@@ -1241,23 +1354,25 @@ const App = {
           <div ref="chatEndEl" class="h-2 w-full"></div>
         </div>
 
-        <!-- Input bar -->
-        <div :class="['border-t px-3 py-2.5 pb-safe flex-shrink-0', isDark ? 'bg-[#191919] border-gray-800' : 'bg-white border-gray-100']">
+        <!-- Input bar (LumiChat-style) -->
+        <div :class="['border-t px-3 py-2 pb-safe flex-shrink-0 backdrop-blur-xl', isDark ? 'bg-[#000]/80 border-[#2e2e2e]' : 'bg-white/80 border-[#d9d9d9]']">
           <div class="flex items-end gap-2">
-            <div :class="['flex-1 flex items-end gap-2 rounded-2xl border px-3 py-2.5 transition', isDark ? 'bg-[#2F2F2F] border-gray-700 focus-within:border-blue-500' : 'bg-[#F7F6F3] border-gray-200 focus-within:border-blue-400']">
+            <div :class="['flex-1 flex items-end rounded-2xl border px-3 py-2 transition', isDark ? 'bg-[#1a1a1a] border-[#2e2e2e] focus-within:border-[#10a37f]' : 'bg-[#f4f4f5] border-[#d9d9d9] focus-within:border-[#10a37f]']">
               <textarea ref="chatInputEl" v-model="chatInput"
                 @keydown.enter.exact="handleEnter"
-                placeholder="发消息给 AI 助手…"
+                placeholder="输入消息…"
                 rows="1"
-                :class="['flex-1 bg-transparent text-[14px] outline-none resize-none leading-5 max-h-32 min-h-5', isDark ? 'text-white placeholder-gray-500' : 'text-[#37352F] placeholder-gray-400']"
+                :class="['flex-1 bg-transparent text-[14px] outline-none resize-none leading-5 max-h-32 min-h-5', isDark ? 'text-white placeholder-[#6b6b6b]' : 'text-[#1a1a1a] placeholder-[#9b9b9b]']"
                 @input="e => { e.target.style.height='auto'; e.target.style.height=Math.min(e.target.scrollHeight, 128)+'px'; }"></textarea>
-              <button v-if="chatting" @click="stopChat"
-                class="flex-shrink-0 w-7 h-7 rounded-full bg-red-500 text-white flex items-center justify-center font-bold press-sm" style="font-size:10px">■</button>
-              <button v-else @click="sendMessage" :disabled="!chatInput.trim()"
-                :class="['flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center press-sm transition', chatInput.trim() ? 'bg-blue-500 text-white' : isDark ? 'bg-gray-700 text-gray-500' : 'bg-gray-200 text-gray-400']">
-                <svg class="w-3.5 h-3.5" style="transform:rotate(90deg)" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 19V5m-7 7l7-7 7 7"/></svg>
-              </button>
             </div>
+            <button v-if="chatting" @click="stopChat"
+              class="flex-shrink-0 w-8 h-8 rounded-full bg-red-500 text-white flex items-center justify-center press-sm mb-0.5">
+              <span class="w-4 h-4" v-html="SVG.stop"></span>
+            </button>
+            <button v-else @click="sendMessage" :disabled="!chatInput.trim()"
+              :class="['flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center press-sm transition-all duration-200 mb-0.5', chatInput.trim() ? 'bg-[#10a37f] text-white shadow-md shadow-emerald-500/25' : isDark ? 'bg-[#2e2e2e] text-[#6b6b6b]' : 'bg-[#e8e8e8] text-[#9b9b9b]']">
+              <span class="w-4 h-4" v-html="SVG.send"></span>
+            </button>
           </div>
         </div>
       </div>
@@ -1266,22 +1381,22 @@ const App = {
       <div v-else-if="activeTab === 'timeline'" key="timeline" class="absolute inset-0 flex flex-col">
 
         <!-- Header -->
-        <div :class="['border-b safe-top px-4 pb-3 flex-shrink-0', isDark ? 'bg-[#191919] border-gray-800' : 'bg-white border-gray-100']">
+        <div :class="['border-b safe-top px-4 pb-3 flex-shrink-0', isDark ? 'bg-[#000] border-gray-800' : 'bg-white border-gray-100']">
           <div class="flex items-center justify-between mb-3">
-            <h1 class="text-[15px] font-semibold">📅 行程时间线</h1>
+            <h1 class="text-[15px] font-semibold flex items-center gap-1.5"><span class="w-4.5 h-4.5 text-[#10a37f]" v-html="SVG.timeline"></span> 行程时间线</h1>
             <button @click="showAddDay = true"
-              :class="['text-[12px] px-3 py-1.5 rounded-xl font-medium press-sm transition', isDark ? 'bg-blue-600 text-white' : 'bg-blue-500 text-white']">
+              :class="['text-[12px] px-3 py-1.5 rounded-xl font-medium press-sm transition', isDark ? 'bg-blue-600 text-white' : 'bg-[#10a37f] text-white']">
               + 添加一天
             </button>
           </div>
           <!-- Day chips -->
           <div class="scroll-x flex gap-2 pb-0.5">
-            <div v-if="!trip.days.length" :class="['flex-shrink-0 px-4 py-2 rounded-xl text-xs', isDark ? 'bg-[#2F2F2F] text-gray-500' : 'bg-[#F7F6F3] text-gray-400']">暂无行程</div>
+            <div v-if="!trip.days.length" :class="['flex-shrink-0 px-4 py-2 rounded-xl text-xs', isDark ? 'bg-[#1a1a1a] text-gray-500' : 'bg-[#F7F6F3] text-gray-400']">暂无行程</div>
             <button v-for="day in trip.days" :key="day.id" @click="selDayId = day.id"
               :class="['flex-shrink-0 px-3 py-2 rounded-xl text-xs font-medium text-center press-sm transition min-w-[70px]',
                 selDayId === day.id
-                  ? 'bg-blue-500 text-white shadow-sm shadow-blue-200'
-                  : isDark ? 'bg-[#2F2F2F] text-gray-300' : 'bg-[#F7F6F3] text-[#37352F]']">
+                  ? 'bg-[#10a37f] text-white shadow-sm shadow-emerald-200'
+                  : isDark ? 'bg-[#1a1a1a] text-gray-300' : 'bg-[#F7F6F3] text-[#37352F]']">
               <div>{{ formatDateShort(day.date) }}</div>
               <div class="opacity-70 mt-0.5 text-[10px] truncate max-w-[64px]">{{ day.title }}</div>
             </button>
@@ -1296,7 +1411,7 @@ const App = {
             <div class="text-4xl">🗓️</div>
             <p :class="['text-[13px] font-medium', isDark ? 'text-gray-300' : 'text-[#37352F]']">还没有行程安排</p>
             <p :class="['text-[12px]', isDark ? 'text-gray-500' : 'text-gray-400']">点击「+ 添加一天」开始，或让 AI 帮你规划</p>
-            <button @click="activeTab = 'ai'" class="mt-1 text-blue-500 text-[13px] font-medium press-sm">让 AI 帮你规划 →</button>
+            <button @click="activeTab = 'ai'" class="mt-1 text-[#10a37f] text-[13px] font-medium press-sm">让 AI 帮你规划 →</button>
           </div>
 
           <!-- Selected day view -->
@@ -1308,7 +1423,7 @@ const App = {
               </div>
               <button @click="showAddAct = true"
                 :class="['text-[12px] px-3 py-1.5 rounded-xl font-medium press-sm border transition',
-                  isDark ? 'border-gray-700 text-gray-200 bg-[#2F2F2F]' : 'border-gray-200 text-[#37352F] bg-white']">
+                  isDark ? 'border-gray-700 text-gray-200 bg-[#1a1a1a]' : 'border-gray-200 text-[#37352F] bg-white']">
                 + 活动
               </button>
             </div>
@@ -1330,7 +1445,7 @@ const App = {
                 <!-- Travel connector -->
                 <div v-if="act.travelFromPrev && i > 0"
                   :class="['flex items-center gap-1.5 text-[11px] mb-2.5 -ml-3', isDark ? 'text-gray-600' : 'text-gray-400']">
-                  <span>{{ act.travelFromPrev.mode === 'driving' ? '🚗' : act.travelFromPrev.mode === 'walking' ? '🚶' : '🚌' }}</span>
+                  <span class="w-3.5 h-3.5" v-html="act.travelFromPrev.mode === 'driving' ? SVG.driving : act.travelFromPrev.mode === 'walking' ? SVG.walking : SVG.transit"></span>
                   <span>{{ act.travelFromPrev.duration }}</span>
                   <span v-if="act.travelFromPrev.distance" class="opacity-60">· {{ act.travelFromPrev.distance }}</span>
                 </div>
@@ -1351,16 +1466,16 @@ const App = {
                 <!-- Activity card -->
                 <div @click="toggleExp(act.id)" @contextmenu.prevent="ctxAct = act; ctxDay = selDay"
                   :class="['rounded-2xl border press transition cursor-pointer',
-                    isDark ? 'bg-[#242424] border-gray-700/60' : 'bg-white border-gray-100 shadow-sm']">
+                    isDark ? 'bg-[#1a1a1a] border-gray-700/60' : 'bg-white border-gray-100 shadow-sm']">
 
                   <!-- Card header -->
                   <div class="px-3.5 py-3">
                     <div class="flex items-start gap-2.5">
-                      <span class="text-xl leading-none mt-0.5 flex-shrink-0">{{ TYPE_META[act.type]?.icon }}</span>
+                      <span class="w-5 h-5 mt-0.5 flex-shrink-0" :style="{color: TYPE_META[act.type]?.color}" v-html="TYPE_META[act.type]?.icon"></span>
                       <div class="flex-1 min-w-0">
                         <div class="flex items-center gap-2 flex-wrap">
                           <span class="font-medium text-[13px] leading-snug">{{ act.name }}</span>
-                          <span v-if="act.googleInfo?.rating" class="text-[11px] text-amber-500 flex-shrink-0">⭐ {{ act.googleInfo.rating }}</span>
+                          <span v-if="act.googleInfo?.rating" class="text-[11px] text-amber-500 flex-shrink-0 flex items-center gap-0.5"><span class="w-3 h-3" v-html="SVG.star"></span>{{ act.googleInfo.rating }}</span>
                           <span v-if="act.reservation?.required" :class="['text-[10px] px-1.5 py-0.5 rounded-full flex-shrink-0 font-medium', isDark ? 'bg-red-900/40 text-red-400' : 'bg-red-50 text-red-500']">需预订</span>
                         </div>
                         <div :class="['text-[11px] mt-0.5 leading-relaxed', isDark ? 'text-gray-500' : 'text-gray-400']">
@@ -1382,8 +1497,8 @@ const App = {
                     <p v-if="act.notes" :class="['text-[13px] leading-relaxed', isDark ? 'text-gray-300' : 'text-[#37352F]']">{{ act.notes }}</p>
 
                     <!-- Google info -->
-                    <div v-if="act.googleInfo" :class="['rounded-xl p-3 text-[12px] space-y-1.5', isDark ? 'bg-[#191919]' : 'bg-[#F7F6F3]']">
-                      <div :class="['font-semibold text-[11px] uppercase tracking-wide', isDark ? 'text-blue-400' : 'text-blue-500']">Google 信息</div>
+                    <div v-if="act.googleInfo" :class="['rounded-xl p-3 text-[12px] space-y-1.5', isDark ? 'bg-[#111]' : 'bg-[#F7F6F3]']">
+                      <div :class="['font-semibold text-[11px] uppercase tracking-wide', isDark ? 'text-[#10a37f]' : 'text-[#10a37f]']">Google 信息</div>
                       <div v-if="act.googleInfo.rating" class="flex gap-3 items-center flex-wrap">
                         <span>⭐ {{ act.googleInfo.rating }}/5</span>
                         <span v-if="act.googleInfo.reviewCount" :class="isDark ? 'text-gray-400' : 'text-gray-500'">{{ act.googleInfo.reviewCount }} 条评价</span>
@@ -1396,11 +1511,11 @@ const App = {
                         <span class="flex-shrink-0">🕐</span><span>{{ act.googleInfo.hours }}</span>
                       </div>
                       <div v-if="act.googleInfo.phone" :class="isDark ? 'text-gray-400' : 'text-gray-600'">📞 {{ act.googleInfo.phone }}</div>
-                      <a v-if="act.googleInfo.website" :href="act.googleInfo.website" target="_blank" class="text-blue-400 flex items-center gap-1">🌐 <span class="underline">官网</span></a>
+                      <a v-if="act.googleInfo.website" :href="act.googleInfo.website" target="_blank" class="text-[#10a37f] flex items-center gap-1">🌐 <span class="underline">官网</span></a>
                     </div>
 
                     <!-- Xiaohongshu info -->
-                    <div v-if="act.xiaohongshu" :class="['rounded-xl p-3 text-[12px] space-y-2', isDark ? 'bg-[#191919]' : 'bg-[#FFF1F2]']">
+                    <div v-if="act.xiaohongshu" :class="['rounded-xl p-3 text-[12px] space-y-2', isDark ? 'bg-[#111]' : 'bg-[#FFF1F2]']">
                       <div class="font-semibold text-[11px] uppercase tracking-wide text-rose-500">📕 小红书推荐</div>
                       <p v-if="act.xiaohongshu.summary" :class="['leading-relaxed', isDark ? 'text-gray-300' : 'text-gray-700']">{{ act.xiaohongshu.summary }}</p>
                       <div v-if="act.xiaohongshu.highlights?.length" class="flex flex-wrap gap-1.5">
@@ -1413,7 +1528,7 @@ const App = {
                     </div>
 
                     <!-- Instagram info -->
-                    <div v-if="act.instagram" :class="['rounded-xl p-3 text-[12px] space-y-2', isDark ? 'bg-[#191919]' : 'bg-[#FDF4FF]']">
+                    <div v-if="act.instagram" :class="['rounded-xl p-3 text-[12px] space-y-2', isDark ? 'bg-[#111]' : 'bg-[#FDF4FF]']">
                       <div class="font-semibold text-[11px] uppercase tracking-wide text-purple-500">📷 Instagram</div>
                       <p v-if="act.instagram.summary" :class="['leading-relaxed', isDark ? 'text-gray-300' : 'text-gray-700']">{{ act.instagram.summary }}</p>
                       <div v-if="act.instagram.hashtags?.length" class="flex flex-wrap gap-1.5">
@@ -1426,25 +1541,25 @@ const App = {
                     </div>
 
                     <!-- Reservation -->
-                    <div v-if="act.reservation?.required" :class="['rounded-xl p-3 text-[12px]', isDark ? 'bg-[#191919]' : 'bg-[#FFF7ED]']">
+                    <div v-if="act.reservation?.required" :class="['rounded-xl p-3 text-[12px]', isDark ? 'bg-[#111]' : 'bg-[#FFF7ED]']">
                       <div class="font-semibold text-[11px] uppercase tracking-wide text-orange-500 mb-1.5">预订信息</div>
                       <div v-if="act.reservation.urgency" class="text-orange-500 flex items-center gap-1.5"><span>⏰</span>{{ act.reservation.urgency }}</div>
                       <div v-if="act.reservation.tip" :class="['mt-1.5 leading-relaxed', isDark ? 'text-gray-300' : 'text-gray-700']">💡 {{ act.reservation.tip }}</div>
                       <div v-if="act.reservation.links?.length" class="flex gap-2 mt-2 flex-wrap">
                         <a v-for="l in act.reservation.links" :key="l.url || l" :href="l.url || l" target="_blank"
-                          class="text-blue-500 underline text-[12px]">{{ l.platform || l }}</a>
+                          class="text-[#10a37f] underline text-[12px]">{{ l.platform || l }}</a>
                       </div>
                     </div>
 
                     <!-- Actions -->
                     <div class="flex gap-2">
                       <button @click.stop="openEditAct(act)"
-                        :class="['flex-1 py-2.5 rounded-xl text-[12px] font-medium transition press-sm', isDark ? 'bg-[#191919] text-gray-200' : 'bg-[#F7F6F3] text-[#37352F]']">
-                        ✏️ 编辑
+                        :class="['flex-1 py-2.5 rounded-xl text-[12px] font-medium transition press-sm flex items-center justify-center gap-1.5', isDark ? 'bg-[#111] text-gray-200' : 'bg-[#F7F6F3] text-[#37352F]']">
+                        <span class="w-3.5 h-3.5" v-html="SVG.edit"></span> 编辑
                       </button>
                       <button @click.stop="deleteActUI(act.id)"
-                        :class="['flex-1 py-2.5 rounded-xl text-[12px] font-medium press-sm transition', isDark ? 'bg-red-900/30 text-red-400' : 'bg-red-50 text-red-500']">
-                        🗑️ 删除
+                        :class="['flex-1 py-2.5 rounded-xl text-[12px] font-medium press-sm transition flex items-center justify-center gap-1.5', isDark ? 'bg-red-900/30 text-red-400' : 'bg-red-50 text-red-500']">
+                        <span class="w-3.5 h-3.5" v-html="SVG.trash"></span> 删除
                       </button>
                     </div>
                   </div>
@@ -1459,9 +1574,9 @@ const App = {
       <div v-else-if="activeTab === 'map'" key="map" class="absolute inset-0 flex flex-col">
 
         <!-- Header with day chips -->
-        <div :class="['border-b safe-top px-4 pb-3 flex-shrink-0', isDark ? 'bg-[#191919] border-gray-800' : 'bg-white border-gray-100']">
+        <div :class="['border-b safe-top px-4 pb-3 flex-shrink-0', isDark ? 'bg-[#000] border-gray-800' : 'bg-white border-gray-100']">
           <div class="flex items-center justify-between mb-2.5">
-            <h1 class="text-[15px] font-semibold">🗺️ 地图视图</h1>
+            <h1 class="text-[15px] font-semibold flex items-center gap-1.5"><span class="w-4.5 h-4.5 text-[#10a37f]" v-html="SVG.map"></span> 地图视图</h1>
             <span v-if="selDay" :class="['text-[12px]', isDark ? 'text-gray-400' : 'text-gray-500']">
               {{ selDay.activities.filter(a => a.location).length }} 个地点
             </span>
@@ -1471,8 +1586,8 @@ const App = {
             <button v-for="day in trip.days" :key="day.id" @click="selDayId = day.id"
               :class="['flex-shrink-0 px-3 py-1.5 rounded-full text-[12px] font-medium press-sm transition',
                 selDayId === day.id
-                  ? 'bg-blue-500 text-white'
-                  : isDark ? 'bg-[#2F2F2F] text-gray-300' : 'bg-[#F7F6F3] text-[#37352F]']">
+                  ? 'bg-[#10a37f] text-white'
+                  : isDark ? 'bg-[#1a1a1a] text-gray-300' : 'bg-[#F7F6F3] text-[#37352F]']">
               {{ formatDateShort(day.date) }}
             </button>
           </div>
@@ -1483,11 +1598,11 @@ const App = {
           <div v-if="mapErr && !mapReady" class="flex flex-col items-center justify-center h-full text-center px-8 gap-3">
             <div class="text-5xl">🗺️</div>
             <p :class="['text-[13px] leading-relaxed max-w-[240px]', isDark ? 'text-gray-400' : 'text-gray-500']">{{ mapErr }}</p>
-            <button @click="activeTab = 'more'" class="text-blue-500 text-[13px] font-medium press-sm">前往设置 →</button>
+            <button @click="activeTab = 'more'" class="text-[#10a37f] text-[13px] font-medium press-sm">前往设置 →</button>
           </div>
           <!-- Loading -->
           <div v-else-if="!mapReady && !mapErr" class="flex flex-col items-center justify-center h-full gap-3">
-            <svg class="spinner w-8 h-8 text-blue-500" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/></svg>
+            <svg class="spinner w-8 h-8 text-[#10a37f]" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/></svg>
             <p :class="['text-[13px]', isDark ? 'text-gray-400' : 'text-gray-500']">地图加载中…</p>
           </div>
           <!-- Map canvas - always rendered to allow Google Maps to mount -->
@@ -1495,7 +1610,7 @@ const App = {
           <!-- No activities hint overlay -->
           <div v-if="mapReady && selDay && !selDay.activities.filter(a => a.location).length"
             class="absolute bottom-4 left-4 right-4 pointer-events-none">
-            <div :class="['rounded-2xl px-4 py-3 text-center text-[12px]', isDark ? 'bg-[#2F2F2F]/90 text-gray-400' : 'bg-white/90 text-gray-500']">
+            <div :class="['rounded-2xl px-4 py-3 text-center text-[12px]', isDark ? 'bg-[#1a1a1a]/90 text-gray-400' : 'bg-white/90 text-gray-500']">
               当天活动暂无坐标信息，让 AI 添加地点后可显示路线
             </div>
           </div>
@@ -1506,9 +1621,9 @@ const App = {
       <div v-else-if="activeTab === 'browse'" key="browse" class="absolute inset-0 flex flex-col">
 
         <!-- Header -->
-        <div :class="['border-b safe-top px-4 pb-3 flex-shrink-0', isDark ? 'bg-[#191919] border-gray-800' : 'bg-white border-gray-100']">
+        <div :class="['border-b safe-top px-4 pb-3 flex-shrink-0', isDark ? 'bg-[#000] border-gray-800' : 'bg-white border-gray-100']">
           <div class="flex items-center justify-between mb-3">
-            <h1 class="text-[15px] font-semibold">🍜 浏览行程</h1>
+            <h1 class="text-[15px] font-semibold flex items-center gap-1.5"><span class="w-4.5 h-4.5 text-[#10a37f]" v-html="SVG.browse"></span> 浏览行程</h1>
             <div class="flex gap-1.5">
               <button @click="exportJSON" :class="['text-[11px] px-2.5 py-1.5 rounded-lg border font-medium press-sm transition', isDark ? 'border-gray-700 text-gray-300' : 'border-gray-200 text-gray-600']">⬇ 导出</button>
               <label :class="['text-[11px] px-2.5 py-1.5 rounded-lg border font-medium press-sm transition cursor-pointer', isDark ? 'border-gray-700 text-gray-300' : 'border-gray-200 text-gray-600']">
@@ -1518,12 +1633,12 @@ const App = {
           </div>
           <!-- Search input -->
           <input v-model="browseQ" type="search" placeholder="搜索地点名称…"
-            :class="['w-full px-3.5 py-2.5 rounded-xl text-[13px] border outline-none mb-3', isDark ? 'bg-[#2F2F2F] border-gray-700 text-white placeholder-gray-500' : 'bg-[#F7F6F3] border-gray-200 placeholder-gray-400']" />
+            :class="['w-full px-3.5 py-2.5 rounded-xl text-[13px] border outline-none mb-3', isDark ? 'bg-[#1a1a1a] border-gray-700 text-white placeholder-gray-500' : 'bg-[#F7F6F3] border-gray-200 placeholder-gray-400']" />
           <!-- Category pills -->
           <div class="scroll-x flex gap-1.5 pb-0.5">
             <button v-for="cat in browseCats" :key="cat" @click="browseCat = cat"
               :class="['flex-shrink-0 px-3 py-1.5 rounded-full text-[12px] font-medium press-sm transition',
-                browseCat === cat ? 'bg-blue-500 text-white' : isDark ? 'bg-[#2F2F2F] text-gray-300' : 'bg-[#F7F6F3] text-[#37352F]']">
+                browseCat === cat ? 'bg-[#10a37f] text-white' : isDark ? 'bg-[#1a1a1a] text-gray-300' : 'bg-[#F7F6F3] text-[#37352F]']">
               {{ cat }}
             </button>
           </div>
@@ -1540,10 +1655,10 @@ const App = {
               <p :class="['text-[12px] mt-1', isDark ? 'text-gray-600' : 'text-gray-400']">让 AI 添加当地实用小贴士</p>
             </div>
             <div v-for="tip in trip.tips" :key="tip.id"
-              :class="['rounded-2xl p-4 mb-3 flex gap-3', isDark ? 'bg-[#242424] border border-gray-700/60' : 'bg-white border border-gray-100 shadow-sm']">
+              :class="['rounded-2xl p-4 mb-3 flex gap-3', isDark ? 'bg-[#1a1a1a] border border-gray-700/60' : 'bg-white border border-gray-100 shadow-sm']">
               <span class="text-xl flex-shrink-0 mt-0.5">💡</span>
               <div class="flex-1 min-w-0">
-                <div :class="['text-[11px] font-semibold mb-1.5 uppercase tracking-wide', isDark ? 'text-blue-400' : 'text-blue-500']">{{ tip.category }}</div>
+                <div :class="['text-[11px] font-semibold mb-1.5 uppercase tracking-wide', isDark ? 'text-[#10a37f]' : 'text-[#10a37f]']">{{ tip.category }}</div>
                 <p :class="['text-[13px] leading-relaxed', isDark ? 'text-gray-300' : 'text-[#37352F]']">{{ tip.content }}</p>
               </div>
               <button @click="TOOLS.delete_tip({ tipId: tip.id })" :class="['text-sm press-sm flex-shrink-0 self-start mt-0.5', isDark ? 'text-gray-600' : 'text-gray-300']">✕</button>
@@ -1557,16 +1672,16 @@ const App = {
               <p :class="['text-[13px]', isDark ? 'text-gray-400' : 'text-gray-500']">{{ browseQ ? '没有找到匹配的结果' : '暂无相关活动' }}</p>
             </div>
             <div v-for="act in filteredActs" :key="act.id"
-              :class="['rounded-2xl border p-3.5 mb-3', isDark ? 'bg-[#242424] border-gray-700/60' : 'bg-white border-gray-100 shadow-sm']">
+              :class="['rounded-2xl border p-3.5 mb-3', isDark ? 'bg-[#1a1a1a] border-gray-700/60' : 'bg-white border-gray-100 shadow-sm']">
               <div class="flex gap-3">
-                <div class="flex-shrink-0 w-10 h-10 rounded-xl flex items-center justify-center text-xl"
-                  :style="{ background: TYPE_META[act.type]?.bg || '#F7F6F3' }">
-                  {{ TYPE_META[act.type]?.icon }}
+                <div class="flex-shrink-0 w-10 h-10 rounded-xl flex items-center justify-center"
+                  :style="{ background: TYPE_META[act.type]?.bg || '#F7F6F3', color: TYPE_META[act.type]?.color }">
+                  <span class="w-5 h-5" v-html="TYPE_META[act.type]?.icon"></span>
                 </div>
                 <div class="flex-1 min-w-0">
                   <div class="flex items-center gap-2 flex-wrap mb-0.5">
                     <span class="font-medium text-[13px]">{{ act.name }}</span>
-                    <span v-if="act.googleInfo?.rating" class="text-[11px] text-amber-500 flex-shrink-0">⭐ {{ act.googleInfo.rating }}</span>
+                    <span v-if="act.googleInfo?.rating" class="text-[11px] text-amber-500 flex-shrink-0 flex items-center gap-0.5"><span class="w-3 h-3" v-html="SVG.star"></span>{{ act.googleInfo.rating }}</span>
                     <span v-if="act.reservation?.required" :class="['text-[10px] px-1.5 py-0.5 rounded-full font-medium flex-shrink-0', isDark ? 'bg-red-900/30 text-red-400' : 'bg-red-50 text-red-500']">需预订</span>
                   </div>
                   <div :class="['text-[11px]', isDark ? 'text-gray-500' : 'text-gray-400']">
@@ -1583,15 +1698,15 @@ const App = {
 
       <!-- ══ MORE / SETTINGS TAB ══ -->
       <div v-else-if="activeTab === 'more'" key="more" class="absolute inset-0 flex flex-col">
-        <div :class="['border-b safe-top px-4 pb-3 flex-shrink-0', isDark ? 'bg-[#191919] border-gray-800' : 'bg-white border-gray-100']">
-          <h1 class="text-[15px] font-semibold">⚙️ 设置</h1>
+        <div :class="['border-b safe-top px-4 pb-3 flex-shrink-0', isDark ? 'bg-[#000] border-gray-800' : 'bg-white border-gray-100']">
+          <h1 class="text-[15px] font-semibold flex items-center gap-1.5"><span class="w-4.5 h-4.5 text-[#10a37f]" v-html="SVG.settings"></span> 设置</h1>
         </div>
         <div class="flex-1 scroll-y px-4 py-4 space-y-4 pb-safe">
 
           <!-- Trip summary -->
           <div :class="['rounded-2xl border overflow-hidden', isDark ? 'border-gray-800' : 'border-gray-100']">
-            <div :class="['px-4 py-2 text-[10px] font-bold uppercase tracking-wider', isDark ? 'bg-[#2A2A2A] text-gray-500' : 'bg-[#F7F6F3] text-gray-400']">当前行程</div>
-            <div :class="['px-4 py-3.5', isDark ? 'bg-[#1e1e1e]' : 'bg-white']">
+            <div :class="['px-4 py-2 text-[10px] font-bold uppercase tracking-wider', isDark ? 'bg-[#1a1a1a] text-gray-500' : 'bg-[#F7F6F3] text-gray-400']">当前行程</div>
+            <div :class="['px-4 py-3.5', isDark ? 'bg-[#111]' : 'bg-white']">
               <div v-if="trip.name">
                 <p class="font-semibold text-[14px]">{{ trip.name }}</p>
                 <p :class="['text-[12px] mt-1', isDark ? 'text-gray-400' : 'text-gray-500']">
@@ -1607,20 +1722,20 @@ const App = {
 
           <!-- AI Provider & Model -->
           <div :class="['rounded-2xl border overflow-hidden', isDark ? 'border-gray-800' : 'border-gray-100']">
-            <div :class="['px-4 py-2 text-[10px] font-bold uppercase tracking-wider', isDark ? 'bg-[#2A2A2A] text-gray-500' : 'bg-[#F7F6F3] text-gray-400']">AI 提供商</div>
-            <div :class="['px-4 py-3.5', isDark ? 'bg-[#1e1e1e]' : 'bg-white']">
+            <div :class="['px-4 py-2 text-[10px] font-bold uppercase tracking-wider', isDark ? 'bg-[#1a1a1a] text-gray-500' : 'bg-[#F7F6F3] text-gray-400']">AI 提供商</div>
+            <div :class="['px-4 py-3.5', isDark ? 'bg-[#111]' : 'bg-white']">
               <div class="grid grid-cols-2 gap-2 mb-2">
                 <div>
                   <label :class="['text-[11px] font-semibold block mb-1.5', isDark ? 'text-gray-400' : 'text-gray-500']">提供商</label>
                   <select :value="provider" @change="selectProv($event.target.value)"
-                    :class="['w-full px-3 py-2.5 rounded-xl border text-[13px] outline-none', isDark ? 'bg-[#2F2F2F] border-gray-700 text-white' : 'bg-[#F7F6F3] border-gray-200 text-[#37352F]']">
+                    :class="['w-full px-3 py-2.5 rounded-xl border text-[13px] outline-none', isDark ? 'bg-[#1a1a1a] border-gray-700 text-white' : 'bg-[#F7F6F3] border-gray-200 text-[#37352F]']">
                     <option v-for="(cfg, key) in PROVIDERS" :key="key" :value="key">{{ cfg.name }}</option>
                   </select>
                 </div>
                 <div>
                   <label :class="['text-[11px] font-semibold block mb-1.5', isDark ? 'text-gray-400' : 'text-gray-500']">模型</label>
                   <select :value="model" @change="selectModel($event.target.value)"
-                    :class="['w-full px-3 py-2.5 rounded-xl border text-[13px] outline-none', isDark ? 'bg-[#2F2F2F] border-gray-700 text-white' : 'bg-[#F7F6F3] border-gray-200 text-[#37352F]']">
+                    :class="['w-full px-3 py-2.5 rounded-xl border text-[13px] outline-none', isDark ? 'bg-[#1a1a1a] border-gray-700 text-white' : 'bg-[#F7F6F3] border-gray-200 text-[#37352F]']">
                     <option v-for="m in PROVIDERS[provider].models" :key="m.id" :value="m.id">{{ m.label }}</option>
                   </select>
                 </div>
@@ -1630,33 +1745,33 @@ const App = {
 
           <!-- API Keys -->
           <div :class="['rounded-2xl border overflow-hidden', isDark ? 'border-gray-800' : 'border-gray-100']">
-            <div :class="['px-4 py-2 text-[10px] font-bold uppercase tracking-wider', isDark ? 'bg-[#2A2A2A] text-gray-500' : 'bg-[#F7F6F3] text-gray-400']">API Keys（加密存储）</div>
+            <div :class="['px-4 py-2 text-[10px] font-bold uppercase tracking-wider', isDark ? 'bg-[#1a1a1a] text-gray-500' : 'bg-[#F7F6F3] text-gray-400']">API Keys（加密存储）</div>
             <div :class="['divide-y', isDark ? 'divide-gray-800' : 'divide-gray-100']">
-              <div v-for="(cfg, key) in PROVIDERS" :key="key" :class="['px-4 py-3', isDark ? 'bg-[#1e1e1e]' : 'bg-white']">
+              <div v-for="(cfg, key) in PROVIDERS" :key="key" :class="['px-4 py-3', isDark ? 'bg-[#111]' : 'bg-white']">
                 <label :class="['text-[11px] font-semibold block mb-1.5', isDark ? 'text-gray-400' : 'text-gray-500']">{{ cfg.name }}</label>
                 <div class="relative">
                   <input v-model="keys[key]" :type="showKeyVis[key] ? 'text' : 'password'" :placeholder="cfg.name + ' API Key'"
-                    :class="['w-full px-3 py-2.5 pr-10 rounded-xl text-[13px] border outline-none transition', isDark ? 'bg-[#2F2F2F] border-gray-700 text-white placeholder-gray-600' : 'bg-[#F7F6F3] border-gray-200 placeholder-gray-400']" />
+                    :class="['w-full px-3 py-2.5 pr-10 rounded-xl text-[13px] border outline-none transition', isDark ? 'bg-[#1a1a1a] border-gray-700 text-white placeholder-gray-600' : 'bg-[#F7F6F3] border-gray-200 placeholder-gray-400']" />
                   <button @click="showKeyVis[key] = !showKeyVis[key]"
                     :class="['absolute right-2.5 top-1/2 -translate-y-1/2 text-base leading-none', isDark ? 'text-gray-600' : 'text-gray-300']">
                     {{ showKeyVis[key] ? '🙈' : '👁️' }}
                   </button>
                 </div>
               </div>
-              <div :class="['px-4 py-3', isDark ? 'bg-[#1e1e1e]' : 'bg-white']">
+              <div :class="['px-4 py-3', isDark ? 'bg-[#111]' : 'bg-white']">
                 <label :class="['text-[11px] font-semibold block mb-1.5', isDark ? 'text-gray-400' : 'text-gray-500']">Google Maps</label>
                 <div class="relative">
                   <input v-model="keys.maps" :type="showKeyVis.maps ? 'text' : 'password'" placeholder="Google Maps API Key"
-                    :class="['w-full px-3 py-2.5 pr-10 rounded-xl text-[13px] border outline-none', isDark ? 'bg-[#2F2F2F] border-gray-700 text-white placeholder-gray-600' : 'bg-[#F7F6F3] border-gray-200 placeholder-gray-400']" />
+                    :class="['w-full px-3 py-2.5 pr-10 rounded-xl text-[13px] border outline-none', isDark ? 'bg-[#1a1a1a] border-gray-700 text-white placeholder-gray-600' : 'bg-[#F7F6F3] border-gray-200 placeholder-gray-400']" />
                   <button @click="showKeyVis.maps = !showKeyVis.maps"
                     :class="['absolute right-2.5 top-1/2 -translate-y-1/2 text-base leading-none', isDark ? 'text-gray-600' : 'text-gray-300']">
                     {{ showKeyVis.maps ? '🙈' : '👁️' }}
                   </button>
                 </div>
               </div>
-              <div :class="['px-4 py-3', isDark ? 'bg-[#1e1e1e]' : 'bg-white']">
+              <div :class="['px-4 py-3', isDark ? 'bg-[#111]' : 'bg-white']">
                 <button @click="doSaveKeys"
-                  :class="['w-full py-3 rounded-xl text-[13px] font-semibold press transition', keysSaved ? 'bg-green-500 text-white' : 'bg-blue-500 text-white']">
+                  :class="['w-full py-3 rounded-xl text-[13px] font-semibold press transition', keysSaved ? 'bg-green-500 text-white' : 'bg-[#10a37f] text-white']">
                   {{ keysSaved ? '✓ 已保存' : '保存 API Keys' }}
                 </button>
               </div>
@@ -1665,14 +1780,14 @@ const App = {
 
           <!-- Appearance -->
           <div :class="['rounded-2xl border overflow-hidden', isDark ? 'border-gray-800' : 'border-gray-100']">
-            <div :class="['px-4 py-2 text-[10px] font-bold uppercase tracking-wider', isDark ? 'bg-[#2A2A2A] text-gray-500' : 'bg-[#F7F6F3] text-gray-400']">外观</div>
-            <div :class="['px-4 py-4 flex items-center justify-between', isDark ? 'bg-[#1e1e1e]' : 'bg-white']">
+            <div :class="['px-4 py-2 text-[10px] font-bold uppercase tracking-wider', isDark ? 'bg-[#1a1a1a] text-gray-500' : 'bg-[#F7F6F3] text-gray-400']">外观</div>
+            <div :class="['px-4 py-4 flex items-center justify-between', isDark ? 'bg-[#111]' : 'bg-white']">
               <div>
                 <span class="text-[14px] font-medium">深色模式</span>
                 <p :class="['text-[11px] mt-0.5', isDark ? 'text-gray-500' : 'text-gray-400']">{{ isDark ? '当前：深色' : '当前：浅色' }}</p>
               </div>
               <button @click="toggleDark"
-                :class="['relative press-sm transition-colors flex-shrink-0', isDark ? 'bg-blue-500' : 'bg-gray-200']"
+                :class="['relative press-sm transition-colors flex-shrink-0', isDark ? 'bg-[#d7f4eb]0' : 'bg-gray-200']"
                 style="width:48px; height:28px; border-radius:14px;">
                 <span :class="['absolute top-1 w-5 h-5 rounded-full bg-white shadow-sm transition-all duration-200', isDark ? 'left-[26px]' : 'left-1']"></span>
               </button>
@@ -1681,20 +1796,20 @@ const App = {
 
           <!-- Data management -->
           <div :class="['rounded-2xl border overflow-hidden', isDark ? 'border-gray-800' : 'border-gray-100']">
-            <div :class="['px-4 py-2 text-[10px] font-bold uppercase tracking-wider', isDark ? 'bg-[#2A2A2A] text-gray-500' : 'bg-[#F7F6F3] text-gray-400']">数据管理</div>
+            <div :class="['px-4 py-2 text-[10px] font-bold uppercase tracking-wider', isDark ? 'bg-[#1a1a1a] text-gray-500' : 'bg-[#F7F6F3] text-gray-400']">数据管理</div>
             <div :class="['divide-y', isDark ? 'divide-gray-800' : 'divide-gray-100']">
-              <div :class="['px-4 py-3.5 flex items-center justify-between', isDark ? 'bg-[#1e1e1e]' : 'bg-white']">
-                <button @click="showVers = true" class="text-blue-500 text-[13px] flex items-center gap-2 press-sm">
-                  📋 版本历史
+              <div :class="['px-4 py-3.5 flex items-center justify-between', isDark ? 'bg-[#111]' : 'bg-white']">
+                <button @click="showVers = true" class="text-[#10a37f] text-[13px] flex items-center gap-2 press-sm">
+                  <span class="w-4 h-4" v-html="SVG.history"></span> 版本历史
                 </button>
                 <span :class="['text-[12px]', isDark ? 'text-gray-600' : 'text-gray-400']">{{ versions.length }} 个版本</span>
               </div>
-              <div :class="['px-4 py-3.5', isDark ? 'bg-[#1e1e1e]' : 'bg-white']">
-                <button @click="exportJSON" class="text-blue-500 text-[13px] press-sm w-full text-left">⬇️ 导出行程 JSON</button>
+              <div :class="['px-4 py-3.5', isDark ? 'bg-[#111]' : 'bg-white']">
+                <button @click="exportJSON" class="text-[#10a37f] text-[13px] press-sm w-full text-left flex items-center gap-2"><span class="w-4 h-4" v-html="SVG.export"></span> 导出行程 JSON</button>
               </div>
-              <div :class="['px-4 py-3.5', isDark ? 'bg-[#1e1e1e]' : 'bg-white']">
-                <label class="text-blue-500 text-[13px] cursor-pointer block press-sm">
-                  ⬆️ 导入行程 JSON
+              <div :class="['px-4 py-3.5', isDark ? 'bg-[#111]' : 'bg-white']">
+                <label class="text-[#10a37f] text-[13px] cursor-pointer press-sm flex items-center gap-2">
+                  <span class="w-4 h-4" v-html="SVG.import"></span> 导入行程 JSON
                   <input type="file" accept=".json" class="hidden" @change="importJSON" />
                 </label>
               </div>
@@ -1703,22 +1818,22 @@ const App = {
 
           <!-- Security -->
           <div :class="['rounded-2xl border overflow-hidden', isDark ? 'border-gray-800' : 'border-gray-100']">
-            <div :class="['px-4 py-2 text-[10px] font-bold uppercase tracking-wider', isDark ? 'bg-[#2A2A2A] text-gray-500' : 'bg-[#F7F6F3] text-gray-400']">安全</div>
+            <div :class="['px-4 py-2 text-[10px] font-bold uppercase tracking-wider', isDark ? 'bg-[#1a1a1a] text-gray-500' : 'bg-[#F7F6F3] text-gray-400']">安全</div>
             <div :class="['divide-y', isDark ? 'divide-gray-800' : 'divide-gray-100']">
-              <div :class="['px-4 py-3.5', isDark ? 'bg-[#1e1e1e]' : 'bg-white']">
-                <button @click="showChgPw = !showChgPw" class="text-blue-500 text-[13px] press-sm w-full text-left">
-                  🔑 修改主密码
+              <div :class="['px-4 py-3.5', isDark ? 'bg-[#111]' : 'bg-white']">
+                <button @click="showChgPw = !showChgPw" class="text-[#10a37f] text-[13px] press-sm w-full text-left flex items-center gap-2">
+                  <span class="w-4 h-4" v-html="SVG.key"></span> 修改主密码
                 </button>
                 <div v-if="showChgPw" class="mt-3 space-y-2">
                   <input v-model="newPw" type="password" placeholder="新密码（至少4位）"
-                    :class="['w-full px-3 py-2.5 rounded-xl text-[13px] border outline-none', isDark ? 'bg-[#2F2F2F] border-gray-700 text-white' : 'bg-[#F7F6F3] border-gray-200']" />
+                    :class="['w-full px-3 py-2.5 rounded-xl text-[13px] border outline-none', isDark ? 'bg-[#1a1a1a] border-gray-700 text-white' : 'bg-[#F7F6F3] border-gray-200']" />
                   <input v-model="newPw2" type="password" placeholder="确认新密码"
-                    :class="['w-full px-3 py-2.5 rounded-xl text-[13px] border outline-none', isDark ? 'bg-[#2F2F2F] border-gray-700 text-white' : 'bg-[#F7F6F3] border-gray-200']" />
-                  <button @click="doChangePw" class="w-full py-2.5 rounded-xl bg-blue-500 text-white text-[13px] font-semibold press">确认修改</button>
+                    :class="['w-full px-3 py-2.5 rounded-xl text-[13px] border outline-none', isDark ? 'bg-[#1a1a1a] border-gray-700 text-white' : 'bg-[#F7F6F3] border-gray-200']" />
+                  <button @click="doChangePw" class="w-full py-2.5 rounded-xl bg-[#10a37f] text-white text-[13px] font-semibold press">确认修改</button>
                 </div>
               </div>
-              <div :class="['px-4 py-3.5', isDark ? 'bg-[#1e1e1e]' : 'bg-white']">
-                <button @click="doLock" class="text-red-500 text-[13px] press-sm w-full text-left">🔒 锁定应用</button>
+              <div :class="['px-4 py-3.5', isDark ? 'bg-[#111]' : 'bg-white']">
+                <button @click="doLock" class="text-red-500 text-[13px] press-sm w-full text-left flex items-center gap-2"><span class="w-4 h-4" v-html="SVG.lock"></span> 锁定应用</button>
               </div>
             </div>
           </div>
@@ -1730,16 +1845,15 @@ const App = {
     </transition>
   </div>
 
-  <!-- ── Bottom Tab Bar ── -->
-  <div :class="['border-t pb-safe flex-shrink-0', isDark ? 'bg-[#191919] border-gray-800' : 'bg-white border-gray-100']">
+  <!-- ── Bottom Tab Bar (FurNote-style) ── -->
+  <div :class="['border-t pb-safe flex-shrink-0 backdrop-blur-xl', isDark ? 'bg-[#000]/80 border-[#2e2e2e]' : 'bg-white/80 border-[#d9d9d9]']">
     <div class="flex">
-      <button v-for="t in [{id:'ai',icon:'🤖',label:'AI'},{id:'timeline',icon:'📅',label:'时间线'},{id:'map',icon:'🗺️',label:'地图'},{id:'browse',icon:'🍜',label:'浏览'},{id:'more',icon:'⚙️',label:'设置'}]"
+      <button v-for="t in [{id:'ai',svg:SVG.ai,label:'AI'},{id:'timeline',svg:SVG.timeline,label:'时间线'},{id:'map',svg:SVG.map,label:'地图'},{id:'browse',svg:SVG.browse,label:'浏览'},{id:'more',svg:SVG.settings,label:'设置'}]"
         :key="t.id" @click="activeTab = t.id"
-        :class="['flex-1 flex flex-col items-center pt-2.5 pb-1.5 transition press-sm relative',
-          activeTab === t.id ? 'text-blue-500' : isDark ? 'text-gray-500' : 'text-gray-400']">
-        <span class="text-[22px] leading-none">{{ t.icon }}</span>
-        <span class="text-[10px] mt-1 font-medium">{{ t.label }}</span>
-        <span v-if="activeTab === t.id" class="absolute bottom-2 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-blue-500"></span>
+        :class="['flex-1 flex flex-col items-center pt-2 pb-1 transition-all duration-200 press-sm relative',
+          activeTab === t.id ? 'text-[#10a37f]' : isDark ? 'text-[#6b6b6b]' : 'text-[#9b9b9b]']">
+        <span :class="['w-[24px] h-[24px] transition-transform duration-200', activeTab === t.id ? 'scale-110' : '']" v-html="t.svg"></span>
+        <span :class="['text-[10px] mt-0.5 font-medium transition-all duration-200', activeTab === t.id ? 'opacity-100' : 'opacity-70']">{{ t.label }}</span>
       </button>
     </div>
   </div>
@@ -1754,16 +1868,16 @@ const App = {
 <transition name="fade">
   <div v-if="ctxAct" class="fixed inset-0 z-50 flex items-end" @click="ctxAct = null">
     <div class="absolute inset-0 bg-black/40 backdrop-blur-sm"></div>
-    <div :class="['relative w-full mx-4 mb-6 rounded-2xl overflow-hidden shadow-2xl', isDark ? 'bg-[#2A2A2A]' : 'bg-white']" @click.stop>
+    <div :class="['relative w-full mx-4 mb-6 rounded-2xl overflow-hidden shadow-2xl', isDark ? 'bg-[#1a1a1a]' : 'bg-white']" @click.stop>
       <div :class="['px-4 py-3.5 border-b', isDark ? 'border-gray-700' : 'border-gray-100']">
         <p class="font-semibold text-[13px] truncate">{{ ctxAct?.name }}</p>
         <p :class="['text-[11px] mt-0.5', isDark ? 'text-gray-400' : 'text-gray-500']">{{ ctxAct?.time }} · {{ TYPE_META[ctxAct?.type]?.label }}</p>
       </div>
-      <button @click="openEditAct(ctxAct)" :class="['w-full px-4 py-3.5 text-left text-[14px] text-blue-500 flex items-center gap-3 press', isDark ? 'hover:bg-gray-700/30' : 'hover:bg-gray-50']">
-        <span>✏️</span> 编辑活动
+      <button @click="openEditAct(ctxAct)" :class="['w-full px-4 py-3.5 text-left text-[14px] text-[#10a37f] flex items-center gap-3 press', isDark ? 'hover:bg-gray-700/30' : 'hover:bg-gray-50']">
+        <span class="w-5 h-5" v-html="SVG.edit"></span> 编辑活动
       </button>
       <button @click="deleteActUI(ctxAct?.id)" :class="['w-full px-4 py-3.5 text-left text-[14px] text-red-500 flex items-center gap-3 press', isDark ? 'hover:bg-gray-700/30' : 'hover:bg-gray-50']">
-        <span>🗑️</span> 删除活动
+        <span class="w-5 h-5" v-html="SVG.trash"></span> 删除活动
       </button>
       <button @click="ctxAct = null" :class="['w-full px-4 py-3.5 text-left text-[14px] press border-t', isDark ? 'text-gray-400 border-gray-700' : 'text-gray-500 border-gray-100']">取消</button>
     </div>
@@ -1774,28 +1888,28 @@ const App = {
 <transition name="slide-up">
   <div v-if="showEditAct" class="fixed inset-0 z-50 flex items-end">
     <div class="absolute inset-0 bg-black/50" @click="showEditAct = false"></div>
-    <div :class="['relative w-full rounded-t-3xl max-h-[90vh] flex flex-col', isDark ? 'bg-[#191919]' : 'bg-white']">
+    <div :class="['relative w-full rounded-t-3xl max-h-[90vh] flex flex-col', isDark ? 'bg-[#000]' : 'bg-white']">
       <!-- Handle -->
       <div class="flex justify-center pt-3 pb-1 flex-shrink-0">
         <div :class="['w-10 h-1 rounded-full', isDark ? 'bg-gray-700' : 'bg-gray-200']"></div>
       </div>
       <div :class="['flex items-center justify-between px-5 py-3 border-b flex-shrink-0', isDark ? 'border-gray-800' : 'border-gray-100']">
         <h3 class="font-semibold text-[15px]">编辑活动</h3>
-        <button @click="showEditAct = false" :class="['w-8 h-8 rounded-full flex items-center justify-center text-sm', isDark ? 'bg-[#2F2F2F] text-gray-300' : 'bg-[#F7F6F3] text-gray-600']">✕</button>
+        <button @click="showEditAct = false" :class="['w-8 h-8 rounded-full flex items-center justify-center text-sm', isDark ? 'bg-[#1a1a1a] text-gray-300' : 'bg-[#F7F6F3] text-gray-600']">✕</button>
       </div>
       <div v-if="editAct" class="flex-1 scroll-y px-5 py-4 space-y-4 pb-8">
         <div>
           <label :class="['text-[11px] font-semibold block mb-1.5', isDark ? 'text-gray-400' : 'text-gray-500']">活动名称</label>
-          <input v-model="editAct.name" :class="['w-full px-3.5 py-3 rounded-xl border text-[13px] outline-none', isDark ? 'bg-[#2F2F2F] border-gray-700 text-white' : 'bg-[#F7F6F3] border-gray-200']" />
+          <input v-model="editAct.name" :class="['w-full px-3.5 py-3 rounded-xl border text-[13px] outline-none', isDark ? 'bg-[#1a1a1a] border-gray-700 text-white' : 'bg-[#F7F6F3] border-gray-200']" />
         </div>
         <div class="grid grid-cols-2 gap-3">
           <div>
             <label :class="['text-[11px] font-semibold block mb-1.5', isDark ? 'text-gray-400' : 'text-gray-500']">开始时间</label>
-            <input v-model="editAct.time" type="time" :class="['w-full px-3 py-3 rounded-xl border text-[13px] outline-none', isDark ? 'bg-[#2F2F2F] border-gray-700 text-white' : 'bg-[#F7F6F3] border-gray-200']" />
+            <input v-model="editAct.time" type="time" :class="['w-full px-3 py-3 rounded-xl border text-[13px] outline-none', isDark ? 'bg-[#1a1a1a] border-gray-700 text-white' : 'bg-[#F7F6F3] border-gray-200']" />
           </div>
           <div>
             <label :class="['text-[11px] font-semibold block mb-1.5', isDark ? 'text-gray-400' : 'text-gray-500']">结束时间</label>
-            <input v-model="editAct.endTime" type="time" :class="['w-full px-3 py-3 rounded-xl border text-[13px] outline-none', isDark ? 'bg-[#2F2F2F] border-gray-700 text-white' : 'bg-[#F7F6F3] border-gray-200']" />
+            <input v-model="editAct.endTime" type="time" :class="['w-full px-3 py-3 rounded-xl border text-[13px] outline-none', isDark ? 'bg-[#1a1a1a] border-gray-700 text-white' : 'bg-[#F7F6F3] border-gray-200']" />
           </div>
         </div>
         <div>
@@ -1803,20 +1917,20 @@ const App = {
           <div class="flex gap-2 flex-wrap">
             <button v-for="(meta, type) in TYPE_META" :key="type" @click="editAct.type = type"
               :class="['px-3 py-1.5 rounded-full text-[12px] font-medium border press-sm transition',
-                editAct.type === type ? 'bg-blue-500 text-white border-transparent' : isDark ? 'border-gray-700 text-gray-300' : 'border-gray-200 text-gray-600']">
+                editAct.type === type ? 'bg-[#10a37f] text-white border-transparent' : isDark ? 'border-gray-700 text-gray-300' : 'border-gray-200 text-gray-600']">
               {{ meta.icon }} {{ meta.label }}
             </button>
           </div>
         </div>
         <div>
           <label :class="['text-[11px] font-semibold block mb-1.5', isDark ? 'text-gray-400' : 'text-gray-500']">地址</label>
-          <input v-model="editAct.address" placeholder="可选" :class="['w-full px-3.5 py-3 rounded-xl border text-[13px] outline-none', isDark ? 'bg-[#2F2F2F] border-gray-700 text-white placeholder-gray-600' : 'bg-[#F7F6F3] border-gray-200 placeholder-gray-400']" />
+          <input v-model="editAct.address" placeholder="可选" :class="['w-full px-3.5 py-3 rounded-xl border text-[13px] outline-none', isDark ? 'bg-[#1a1a1a] border-gray-700 text-white placeholder-gray-600' : 'bg-[#F7F6F3] border-gray-200 placeholder-gray-400']" />
         </div>
         <div>
           <label :class="['text-[11px] font-semibold block mb-1.5', isDark ? 'text-gray-400' : 'text-gray-500']">备注</label>
-          <textarea v-model="editAct.notes" rows="3" placeholder="可选" :class="['w-full px-3.5 py-3 rounded-xl border text-[13px] outline-none resize-none', isDark ? 'bg-[#2F2F2F] border-gray-700 text-white placeholder-gray-600' : 'bg-[#F7F6F3] border-gray-200 placeholder-gray-400']"></textarea>
+          <textarea v-model="editAct.notes" rows="3" placeholder="可选" :class="['w-full px-3.5 py-3 rounded-xl border text-[13px] outline-none resize-none', isDark ? 'bg-[#1a1a1a] border-gray-700 text-white placeholder-gray-600' : 'bg-[#F7F6F3] border-gray-200 placeholder-gray-400']"></textarea>
         </div>
-        <button @click="saveEditAct" class="w-full py-3.5 rounded-2xl bg-blue-500 text-white font-semibold text-[13px] press">保存更改</button>
+        <button @click="saveEditAct" class="w-full py-3.5 rounded-2xl bg-[#10a37f] text-white font-semibold text-[13px] press">保存更改</button>
       </div>
     </div>
   </div>
@@ -1826,25 +1940,25 @@ const App = {
 <transition name="slide-up">
   <div v-if="showAddDay" class="fixed inset-0 z-50 flex items-end">
     <div class="absolute inset-0 bg-black/50" @click="showAddDay = false"></div>
-    <div :class="['relative w-full rounded-t-3xl', isDark ? 'bg-[#191919]' : 'bg-white']">
+    <div :class="['relative w-full rounded-t-3xl', isDark ? 'bg-[#000]' : 'bg-white']">
       <div class="flex justify-center pt-3 pb-1">
         <div :class="['w-10 h-1 rounded-full', isDark ? 'bg-gray-700' : 'bg-gray-200']"></div>
       </div>
       <div :class="['flex items-center justify-between px-5 py-3 border-b', isDark ? 'border-gray-800' : 'border-gray-100']">
         <h3 class="font-semibold text-[15px]">添加新的一天</h3>
-        <button @click="showAddDay = false" :class="['w-8 h-8 rounded-full flex items-center justify-center text-sm', isDark ? 'bg-[#2F2F2F] text-gray-300' : 'bg-[#F7F6F3] text-gray-600']">✕</button>
+        <button @click="showAddDay = false" :class="['w-8 h-8 rounded-full flex items-center justify-center text-sm', isDark ? 'bg-[#1a1a1a] text-gray-300' : 'bg-[#F7F6F3] text-gray-600']">✕</button>
       </div>
       <div class="px-5 py-4 space-y-4 pb-8">
         <div>
           <label :class="['text-[11px] font-semibold block mb-1.5', isDark ? 'text-gray-400' : 'text-gray-500']">日期</label>
-          <input v-model="addDayDate" type="date" :class="['w-full px-3.5 py-3 rounded-xl border text-[13px] outline-none', isDark ? 'bg-[#2F2F2F] border-gray-700 text-white' : 'bg-[#F7F6F3] border-gray-200']" />
+          <input v-model="addDayDate" type="date" :class="['w-full px-3.5 py-3 rounded-xl border text-[13px] outline-none', isDark ? 'bg-[#1a1a1a] border-gray-700 text-white' : 'bg-[#F7F6F3] border-gray-200']" />
         </div>
         <div>
           <label :class="['text-[11px] font-semibold block mb-1.5', isDark ? 'text-gray-400' : 'text-gray-500']">标题</label>
           <input v-model="addDayTitle" placeholder="如：乌布文化之旅" @keyup.enter="doAddDay"
-            :class="['w-full px-3.5 py-3 rounded-xl border text-[13px] outline-none', isDark ? 'bg-[#2F2F2F] border-gray-700 text-white placeholder-gray-600' : 'bg-[#F7F6F3] border-gray-200 placeholder-gray-400']" />
+            :class="['w-full px-3.5 py-3 rounded-xl border text-[13px] outline-none', isDark ? 'bg-[#1a1a1a] border-gray-700 text-white placeholder-gray-600' : 'bg-[#F7F6F3] border-gray-200 placeholder-gray-400']" />
         </div>
-        <button @click="doAddDay" class="w-full py-3.5 rounded-2xl bg-blue-500 text-white font-semibold text-[13px] press">添加</button>
+        <button @click="doAddDay" class="w-full py-3.5 rounded-2xl bg-[#10a37f] text-white font-semibold text-[13px] press">添加</button>
       </div>
     </div>
   </div>
@@ -1854,27 +1968,27 @@ const App = {
 <transition name="slide-up">
   <div v-if="showAddAct" class="fixed inset-0 z-50 flex items-end">
     <div class="absolute inset-0 bg-black/50" @click="showAddAct = false"></div>
-    <div :class="['relative w-full rounded-t-3xl max-h-[90vh] flex flex-col', isDark ? 'bg-[#191919]' : 'bg-white']">
+    <div :class="['relative w-full rounded-t-3xl max-h-[90vh] flex flex-col', isDark ? 'bg-[#000]' : 'bg-white']">
       <div class="flex justify-center pt-3 pb-1 flex-shrink-0">
         <div :class="['w-10 h-1 rounded-full', isDark ? 'bg-gray-700' : 'bg-gray-200']"></div>
       </div>
       <div :class="['flex items-center justify-between px-5 py-3 border-b flex-shrink-0', isDark ? 'border-gray-800' : 'border-gray-100']">
         <h3 class="font-semibold text-[15px]">添加活动</h3>
-        <button @click="showAddAct = false" :class="['w-8 h-8 rounded-full flex items-center justify-center text-sm', isDark ? 'bg-[#2F2F2F] text-gray-300' : 'bg-[#F7F6F3] text-gray-600']">✕</button>
+        <button @click="showAddAct = false" :class="['w-8 h-8 rounded-full flex items-center justify-center text-sm', isDark ? 'bg-[#1a1a1a] text-gray-300' : 'bg-[#F7F6F3] text-gray-600']">✕</button>
       </div>
       <div class="flex-1 scroll-y px-5 py-4 space-y-4 pb-8">
         <div>
           <label :class="['text-[11px] font-semibold block mb-1.5', isDark ? 'text-gray-400' : 'text-gray-500']">活动名称 <span class="text-red-400">*</span></label>
-          <input v-model="newAct.name" placeholder="如：圣猴森林" :class="['w-full px-3.5 py-3 rounded-xl border text-[13px] outline-none', isDark ? 'bg-[#2F2F2F] border-gray-700 text-white placeholder-gray-600' : 'bg-[#F7F6F3] border-gray-200 placeholder-gray-400']" />
+          <input v-model="newAct.name" placeholder="如：圣猴森林" :class="['w-full px-3.5 py-3 rounded-xl border text-[13px] outline-none', isDark ? 'bg-[#1a1a1a] border-gray-700 text-white placeholder-gray-600' : 'bg-[#F7F6F3] border-gray-200 placeholder-gray-400']" />
         </div>
         <div class="grid grid-cols-2 gap-3">
           <div>
             <label :class="['text-[11px] font-semibold block mb-1.5', isDark ? 'text-gray-400' : 'text-gray-500']">开始时间</label>
-            <input v-model="newAct.time" type="time" :class="['w-full px-3 py-3 rounded-xl border text-[13px] outline-none', isDark ? 'bg-[#2F2F2F] border-gray-700 text-white' : 'bg-[#F7F6F3] border-gray-200']" />
+            <input v-model="newAct.time" type="time" :class="['w-full px-3 py-3 rounded-xl border text-[13px] outline-none', isDark ? 'bg-[#1a1a1a] border-gray-700 text-white' : 'bg-[#F7F6F3] border-gray-200']" />
           </div>
           <div>
             <label :class="['text-[11px] font-semibold block mb-1.5', isDark ? 'text-gray-400' : 'text-gray-500']">结束时间</label>
-            <input v-model="newAct.endTime" type="time" :class="['w-full px-3 py-3 rounded-xl border text-[13px] outline-none', isDark ? 'bg-[#2F2F2F] border-gray-700 text-white' : 'bg-[#F7F6F3] border-gray-200']" />
+            <input v-model="newAct.endTime" type="time" :class="['w-full px-3 py-3 rounded-xl border text-[13px] outline-none', isDark ? 'bg-[#1a1a1a] border-gray-700 text-white' : 'bg-[#F7F6F3] border-gray-200']" />
           </div>
         </div>
         <div>
@@ -1882,20 +1996,20 @@ const App = {
           <div class="flex gap-2 flex-wrap">
             <button v-for="(meta, type) in TYPE_META" :key="type" @click="newAct.type = type"
               :class="['px-3 py-1.5 rounded-full text-[12px] font-medium border press-sm transition',
-                newAct.type === type ? 'bg-blue-500 text-white border-transparent' : isDark ? 'border-gray-700 text-gray-300' : 'border-gray-200 text-gray-600']">
+                newAct.type === type ? 'bg-[#10a37f] text-white border-transparent' : isDark ? 'border-gray-700 text-gray-300' : 'border-gray-200 text-gray-600']">
               {{ meta.icon }} {{ meta.label }}
             </button>
           </div>
         </div>
         <div>
           <label :class="['text-[11px] font-semibold block mb-1.5', isDark ? 'text-gray-400' : 'text-gray-500']">地址</label>
-          <input v-model="newAct.address" placeholder="可选" :class="['w-full px-3.5 py-3 rounded-xl border text-[13px] outline-none', isDark ? 'bg-[#2F2F2F] border-gray-700 text-white placeholder-gray-600' : 'bg-[#F7F6F3] border-gray-200 placeholder-gray-400']" />
+          <input v-model="newAct.address" placeholder="可选" :class="['w-full px-3.5 py-3 rounded-xl border text-[13px] outline-none', isDark ? 'bg-[#1a1a1a] border-gray-700 text-white placeholder-gray-600' : 'bg-[#F7F6F3] border-gray-200 placeholder-gray-400']" />
         </div>
         <div>
           <label :class="['text-[11px] font-semibold block mb-1.5', isDark ? 'text-gray-400' : 'text-gray-500']">备注</label>
-          <textarea v-model="newAct.notes" rows="2" placeholder="可选" :class="['w-full px-3.5 py-3 rounded-xl border text-[13px] outline-none resize-none', isDark ? 'bg-[#2F2F2F] border-gray-700 text-white placeholder-gray-600' : 'bg-[#F7F6F3] border-gray-200 placeholder-gray-400']"></textarea>
+          <textarea v-model="newAct.notes" rows="2" placeholder="可选" :class="['w-full px-3.5 py-3 rounded-xl border text-[13px] outline-none resize-none', isDark ? 'bg-[#1a1a1a] border-gray-700 text-white placeholder-gray-600' : 'bg-[#F7F6F3] border-gray-200 placeholder-gray-400']"></textarea>
         </div>
-        <button @click="doAddAct" class="w-full py-3.5 rounded-2xl bg-blue-500 text-white font-semibold text-[13px] press">添加活动</button>
+        <button @click="doAddAct" class="w-full py-3.5 rounded-2xl bg-[#10a37f] text-white font-semibold text-[13px] press">添加活动</button>
       </div>
     </div>
   </div>
@@ -1905,13 +2019,13 @@ const App = {
 <transition name="slide-up">
   <div v-if="showVers" class="fixed inset-0 z-50 flex items-end">
     <div class="absolute inset-0 bg-black/50" @click="showVers = false"></div>
-    <div :class="['relative w-full rounded-t-3xl max-h-[80vh] flex flex-col', isDark ? 'bg-[#191919]' : 'bg-white']">
+    <div :class="['relative w-full rounded-t-3xl max-h-[80vh] flex flex-col', isDark ? 'bg-[#000]' : 'bg-white']">
       <div class="flex justify-center pt-3 pb-1 flex-shrink-0">
         <div :class="['w-10 h-1 rounded-full', isDark ? 'bg-gray-700' : 'bg-gray-200']"></div>
       </div>
       <div :class="['flex items-center justify-between px-5 py-3 border-b flex-shrink-0', isDark ? 'border-gray-800' : 'border-gray-100']">
         <h3 class="font-semibold text-[15px]">版本历史</h3>
-        <button @click="showVers = false" :class="['w-8 h-8 rounded-full flex items-center justify-center text-sm', isDark ? 'bg-[#2F2F2F] text-gray-300' : 'bg-[#F7F6F3] text-gray-600']">✕</button>
+        <button @click="showVers = false" :class="['w-8 h-8 rounded-full flex items-center justify-center text-sm', isDark ? 'bg-[#1a1a1a] text-gray-300' : 'bg-[#F7F6F3] text-gray-600']">✕</button>
       </div>
       <div class="flex-1 scroll-y px-4 py-3 space-y-2 pb-8">
         <div v-if="!versions.length" class="text-center py-14">
@@ -1920,15 +2034,105 @@ const App = {
           <p :class="['text-[12px] mt-1', isDark ? 'text-gray-600' : 'text-gray-400']">每次 AI 修改行程前会自动保存快照</p>
         </div>
         <div v-for="v in versions" :key="v.id"
-          :class="['rounded-2xl border p-3.5 flex items-center gap-3', isDark ? 'border-gray-800 bg-[#242424]' : 'border-gray-100 bg-white shadow-sm']">
+          :class="['rounded-2xl border p-3.5 flex items-center gap-3', isDark ? 'border-gray-800 bg-[#1a1a1a]' : 'border-gray-100 bg-white shadow-sm']">
           <div class="flex-1 min-w-0">
             <p class="text-[13px] font-medium truncate">{{ v.label }}</p>
             <p :class="['text-[11px] mt-0.5', isDark ? 'text-gray-500' : 'text-gray-400']">
               {{ formatTs(v.timestamp) }} · {{ v.snapshot.days.length }} 天 · {{ v.snapshot.days.reduce((s,d) => s + d.activities.length, 0) }} 个活动
             </p>
           </div>
-          <button @click="restoreV(v.id)" :class="['flex-shrink-0 text-[12px] font-semibold px-3 py-1.5 rounded-xl press-sm transition', isDark ? 'bg-blue-600/20 text-blue-400' : 'bg-blue-50 text-blue-600']">恢复</button>
+          <button @click="restoreV(v.id)" :class="['flex-shrink-0 text-[12px] font-semibold px-3 py-1.5 rounded-xl press-sm transition', isDark ? 'bg-[#10a37f]/20 text-[#10a37f]' : 'bg-[#d7f4eb] text-[#10a37f]']">恢复</button>
         </div>
+      </div>
+    </div>
+  </div>
+</transition>
+
+<!-- Map Detail Sheet -->
+<transition name="slide-up">
+  <div v-if="mapDetailAct" class="fixed inset-0 z-50 flex items-end">
+    <div class="absolute inset-0 bg-black/40" @click="mapDetailAct = null"></div>
+    <div :class="['relative w-full rounded-t-3xl max-h-[70vh] flex flex-col', isDark ? 'bg-[#000]' : 'bg-white']">
+      <div class="flex justify-center pt-3 pb-1 flex-shrink-0">
+        <div :class="['w-10 h-1 rounded-full', isDark ? 'bg-gray-700' : 'bg-gray-200']"></div>
+      </div>
+      <div :class="['px-5 py-3 border-b flex-shrink-0 flex items-start gap-3', isDark ? 'border-[#2e2e2e]' : 'border-[#d9d9d9]']">
+        <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+          :style="{ background: TYPE_META[mapDetailAct.type]?.bg, color: TYPE_META[mapDetailAct.type]?.color }">
+          <span class="w-5 h-5" v-html="TYPE_META[mapDetailAct.type]?.icon"></span>
+        </div>
+        <div class="flex-1 min-w-0">
+          <h3 class="font-semibold text-[15px]">{{ mapDetailAct.name }}</h3>
+          <p :class="['text-[12px] mt-0.5', isDark ? 'text-[#6b6b6b]' : 'text-[#9b9b9b]']">
+            {{ mapDetailAct.time }}{{ mapDetailAct.endTime ? ' – ' + mapDetailAct.endTime : '' }}
+            <span v-if="mapDetailAct.address"> · {{ mapDetailAct.address }}</span>
+          </p>
+        </div>
+        <button @click="mapDetailAct = null" :class="['w-8 h-8 rounded-full flex items-center justify-center text-sm flex-shrink-0', isDark ? 'bg-[#1a1a1a] text-gray-300' : 'bg-[#f4f4f5] text-gray-600']">✕</button>
+      </div>
+      <div class="flex-1 scroll-y px-5 py-4 space-y-3 pb-8">
+        <p v-if="mapDetailAct.notes" :class="['text-[13px] leading-relaxed', isDark ? 'text-gray-300' : 'text-[#1a1a1a]']">{{ mapDetailAct.notes }}</p>
+
+        <!-- Google info -->
+        <div v-if="mapDetailAct.googleInfo" :class="['rounded-xl p-3 text-[12px] space-y-1.5', isDark ? 'bg-[#111]' : 'bg-[#f4f4f5]']">
+          <div class="font-semibold text-[11px] uppercase tracking-wide text-[#10a37f]">Google 信息</div>
+          <div v-if="mapDetailAct.googleInfo.rating" class="flex gap-3 items-center flex-wrap">
+            <span class="flex items-center gap-0.5 text-amber-500"><span class="w-3 h-3" v-html="SVG.star"></span> {{ mapDetailAct.googleInfo.rating }}/5</span>
+            <span v-if="mapDetailAct.googleInfo.reviewCount" :class="isDark ? 'text-gray-400' : 'text-gray-500'">{{ mapDetailAct.googleInfo.reviewCount }} 条评价</span>
+          </div>
+          <div v-if="mapDetailAct.googleInfo.hours" :class="isDark ? 'text-gray-400' : 'text-gray-500'">{{ mapDetailAct.googleInfo.hours }}</div>
+          <div v-if="mapDetailAct.googleInfo.phone" :class="isDark ? 'text-gray-400' : 'text-gray-600'">{{ mapDetailAct.googleInfo.phone }}</div>
+          <a v-if="mapDetailAct.googleInfo.website" :href="mapDetailAct.googleInfo.website" target="_blank" class="text-[#10a37f] underline">官网</a>
+        </div>
+
+        <!-- Xiaohongshu -->
+        <div v-if="mapDetailAct.xiaohongshu" :class="['rounded-xl p-3 text-[12px] space-y-2', isDark ? 'bg-[#111]' : 'bg-[#FFF1F2]']">
+          <div class="font-semibold text-[11px] uppercase tracking-wide text-rose-500">小红书推荐</div>
+          <p v-if="mapDetailAct.xiaohongshu.summary" :class="['leading-relaxed', isDark ? 'text-gray-300' : 'text-gray-700']">{{ mapDetailAct.xiaohongshu.summary }}</p>
+          <div v-if="mapDetailAct.xiaohongshu.highlights?.length" class="flex flex-wrap gap-1.5">
+            <span v-for="h in mapDetailAct.xiaohongshu.highlights" :key="h" :class="['px-2 py-0.5 rounded-full text-[11px]', isDark ? 'bg-rose-900/30 text-rose-300' : 'bg-rose-50 text-rose-600']">{{ h }}</span>
+          </div>
+        </div>
+
+        <!-- Instagram -->
+        <div v-if="mapDetailAct.instagram" :class="['rounded-xl p-3 text-[12px] space-y-2', isDark ? 'bg-[#111]' : 'bg-[#FDF4FF]']">
+          <div class="font-semibold text-[11px] uppercase tracking-wide text-purple-500">Instagram</div>
+          <p v-if="mapDetailAct.instagram.summary" :class="['leading-relaxed', isDark ? 'text-gray-300' : 'text-gray-700']">{{ mapDetailAct.instagram.summary }}</p>
+          <div v-if="mapDetailAct.instagram.hashtags?.length" class="flex flex-wrap gap-1.5">
+            <span v-for="tag in mapDetailAct.instagram.hashtags" :key="tag" :class="['px-2 py-0.5 rounded-full text-[11px]', isDark ? 'bg-purple-900/30 text-purple-300' : 'bg-purple-50 text-purple-600']">#{{ tag }}</span>
+          </div>
+        </div>
+
+        <!-- Reservation -->
+        <div v-if="mapDetailAct.reservation?.required" :class="['rounded-xl p-3 text-[12px]', isDark ? 'bg-[#111]' : 'bg-[#FFF7ED]']">
+          <div class="font-semibold text-[11px] uppercase tracking-wide text-orange-500 mb-1.5">预订信息</div>
+          <div v-if="mapDetailAct.reservation.urgency" class="text-orange-500">{{ mapDetailAct.reservation.urgency }}</div>
+          <div v-if="mapDetailAct.reservation.tip" :class="['mt-1.5 leading-relaxed', isDark ? 'text-gray-300' : 'text-gray-700']">{{ mapDetailAct.reservation.tip }}</div>
+          <div v-if="mapDetailAct.reservation.links?.length" class="flex gap-2 mt-2 flex-wrap">
+            <a v-for="l in mapDetailAct.reservation.links" :key="l.url || l" :href="l.url || l" target="_blank"
+              class="text-[#10a37f] underline text-[12px]">{{ l.platform || l }}</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</transition>
+
+<!-- A2HS Banner -->
+<transition name="slide-up">
+  <div v-if="showA2HS" class="fixed bottom-20 inset-x-4 z-[55] rounded-2xl shadow-2xl border overflow-hidden"
+    :class="isDark ? 'bg-[#1a1a1a] border-gray-700' : 'bg-white border-gray-100'">
+    <div class="px-4 py-3.5 flex items-center gap-3">
+      <span class="w-8 h-8 flex-shrink-0 text-[#10a37f]" v-html="SVG.palm"></span>
+      <div class="flex-1 min-w-0">
+        <p class="font-semibold text-[13px]">添加到主屏幕</p>
+        <p :class="['text-[11px] mt-0.5 leading-relaxed', isDark ? 'text-gray-400' : 'text-gray-500']">
+          获得全屏体验，像原生 App 一样使用
+        </p>
+      </div>
+      <div class="flex gap-2 flex-shrink-0">
+        <button @click="dismissA2HS" :class="['px-3 py-1.5 rounded-xl text-[12px] font-medium press-sm', isDark ? 'text-gray-400' : 'text-gray-500']">忽略</button>
+        <button @click="installPWA" class="px-3 py-1.5 rounded-xl bg-[#10a37f] text-white text-[12px] font-medium press-sm">安装</button>
       </div>
     </div>
   </div>
