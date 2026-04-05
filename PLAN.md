@@ -1,7 +1,8 @@
-# Bali Travel Planner — Implementation Plan
+# Travel Planner — Implementation Plan
 
 ## Overview
 Single-file PWA (`index.html`) for iPhone, mobile-first, Notion-style.
+Generic travel planner — supports any destination, up to 3 concurrent trips.
 Deploy via Netlify Drop (drag & drop). API keys encrypted in LocalStorage.
 
 ---
@@ -276,6 +277,13 @@ Design reference: LumiChat (color system) + FurNote (tab bar)
 - [x] **Map detail sheet**: tap marker → slide-up bottom sheet with full activity details (google/xiaohongshu/instagram/reservation)
 - [x] **Activity detail in expanded cards**: xiaohongshu highlights + posts, instagram hashtags + posts, reservation links (already implemented in Phase 3)
 
+### Phase 8 — Generalization & Multi-trip ✅
+- [x] Remove all Bali-specific hardcoding (titles, prompts, defaults, localStorage keys)
+- [x] Geolocation: user position blue dot, smart map center (trip → user loc → world)
+- [x] Multi-trip: up to 3 concurrent plans, switcher UI in settings, per-trip isolation
+- [x] AI session memory: encrypted chat history per trip, restored on unlock/switch
+- [x] Legacy single-trip data auto-migration
+
 ---
 
 ## Deployment
@@ -285,4 +293,4 @@ Design reference: LumiChat (color system) + FurNote (tab bar)
 - **Netlify**: Drag `index.html` to Netlify Drop
 
 ## Key File
-`/Users/richard/Project/Bali travel/index.html` — the only file
+`index.html` — the only file
