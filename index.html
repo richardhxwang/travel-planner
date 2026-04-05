@@ -587,9 +587,12 @@ const App = {
         }
         const keysRaw = localStorage.getItem('tp_keys') || localStorage.getItem('bali_keys');
         if (keysRaw) Object.assign(keys, await decryptData(key, keysRaw));
-        // Load per-trip versions, falling back to global legacy key
+        // Load per-trip versions; legacy global fallback only during single-trip migration
         const vKey = trip.id;
-        const vRaw = localStorage.getItem(`tp_versions_${vKey}`) || localStorage.getItem('tp_versions') || localStorage.getItem('bali_versions');
+        let vRaw = localStorage.getItem(`tp_versions_${vKey}`);
+        if (!vRaw && trips.value.length === 1 && activeTripIdx.value === 0) {
+          vRaw = localStorage.getItem('tp_versions') || localStorage.getItem('bali_versions');
+        }
         if (vRaw) versions.value = await decryptData(key, vRaw);
         masterKey.value = key;
         // Migrate legacy keys to new namespace
@@ -597,10 +600,13 @@ const App = {
           localStorage.setItem('tp_has_password', 'true');
           localStorage.setItem('tp_salt', localStorage.getItem('bali_salt') || '');
           await saveTrip(); await saveKeys(); await saveVersions();
+          // Clean up global legacy keys to prevent stale fallbacks
+          localStorage.removeItem('tp_versions');
+          localStorage.removeItem('bali_versions');
         }
         lockPw.value = '';
-        provider.value = localStorage.getItem('tp_provider') || 'openai';
-        model.value = localStorage.getItem('tp_model') || 'gpt-4o-mini';
+        provider.value = localStorage.getItem('tp_provider') || localStorage.getItem('bali_provider') || 'openai';
+        model.value = localStorage.getItem('tp_model') || localStorage.getItem('bali_model') || 'gpt-4o-mini';
         screen.value = 'app';
         await loadMessages();
       } catch(e) {
