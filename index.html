@@ -314,7 +314,7 @@ const App = {
     const dark      = ref(false);
 
     /* ---- Multi-Trip Data (max 3) ---- */
-    const EMPTY_TRIP = () => ({ id:'', name:'', destination:'', startDate:'', endDate:'', days:[], tips:[], notes:'', createdAt:0, updatedAt:0 });
+    const EMPTY_TRIP = () => ({ id: crypto.randomUUID(), name:'', destination:'', startDate:'', endDate:'', days:[], tips:[], notes:'', createdAt:0, updatedAt:0 });
     const trips = ref([EMPTY_TRIP()]);
     const activeTripIdx = ref(0);
     const trip = reactive(EMPTY_TRIP());
@@ -323,6 +323,7 @@ const App = {
 
     async function switchTrip(idx) {
       if (idx === activeTripIdx.value) return;
+      if (chatting.value) { toast('AI 对话中，请稍后切换', 'error'); return; }
       // Save current trip data + messages + versions
       trips.value[activeTripIdx.value] = JSON.parse(JSON.stringify(trip));
       await saveMessages();
@@ -562,12 +563,14 @@ const App = {
         if (tripRaw) {
           const t = await decryptData(key, tripRaw);
           if (t.trips) {
-            // Multi-trip format
+            // Multi-trip format — ensure all trips have stable IDs
+            t.trips.forEach(tr => { if (!tr.id) tr.id = crypto.randomUUID(); });
             trips.value = t.trips;
             activeTripIdx.value = t.activeIdx || 0;
             Object.assign(trip, JSON.parse(JSON.stringify(trips.value[activeTripIdx.value])));
           } else {
-            // Legacy single-trip format — migrate
+            // Legacy single-trip format — migrate with stable ID
+            if (!t.id) t.id = crypto.randomUUID();
             Object.assign(trip, t);
             trips.value = [JSON.parse(JSON.stringify(trip))];
             activeTripIdx.value = 0;
@@ -577,7 +580,7 @@ const App = {
         const keysRaw = localStorage.getItem('tp_keys') || localStorage.getItem('bali_keys');
         if (keysRaw) Object.assign(keys, await decryptData(key, keysRaw));
         // Load per-trip versions, falling back to global legacy key
-        const vKey = trip.id || `trip_${activeTripIdx.value}`;
+        const vKey = trip.id;
         const vRaw = localStorage.getItem(`tp_versions_${vKey}`) || localStorage.getItem('tp_versions') || localStorage.getItem('bali_versions');
         if (vRaw) versions.value = await decryptData(key, vRaw);
         masterKey.value = key;
@@ -618,12 +621,12 @@ const App = {
     }
     async function saveVersions() {
       if (!masterKey.value) return;
-      const vKey = trip.id || `trip_${activeTripIdx.value}`;
+      const vKey = trip.id;
       localStorage.setItem(`tp_versions_${vKey}`, await encryptData(masterKey.value, versions.value));
     }
     async function loadVersions() {
       if (!masterKey.value) return;
-      const vKey = trip.id || `trip_${activeTripIdx.value}`;
+      const vKey = trip.id;
       const raw = localStorage.getItem(`tp_versions_${vKey}`);
       if (raw) {
         try { versions.value = await decryptData(masterKey.value, raw); }
@@ -638,12 +641,12 @@ const App = {
         toolCalls: m.toolCalls || [], _skip: m._skip || false,
         _lastAssistant: m._lastAssistant, _toolResultMessages: m._toolResultMessages
       }));
-      const msgKey = trip.id || `trip_${activeTripIdx.value}`;
+      const msgKey = trip.id;
       localStorage.setItem(`tp_messages_${msgKey}`, await encryptData(masterKey.value, toSave));
     }
     async function loadMessages() {
       if (!masterKey.value) return;
-      const msgKey = trip.id || `trip_${activeTripIdx.value}`;
+      const msgKey = trip.id;
       const raw = localStorage.getItem(`tp_messages_${msgKey}`);
       if (raw) {
         try { messages.value = await decryptData(masterKey.value, raw); }
@@ -1272,7 +1275,7 @@ const App = {
       // Re-encrypt per-trip messages & versions for non-active trips
       for (let i = 0; i < trips.value.length; i++) {
         if (i === activeTripIdx.value) continue;
-        const tid = trips.value[i].id || `trip_${i}`;
+        const tid = trips.value[i].id;
         // Re-encrypt messages
         const mRaw = localStorage.getItem(`tp_messages_${tid}`);
         if (mRaw) {
