@@ -284,6 +284,20 @@ Design reference: LumiChat (color system) + FurNote (tab bar)
 - [x] AI session memory: encrypted chat history per trip, restored on unlock/switch
 - [x] Legacy single-trip data auto-migration
 
+### Phase 9 — E2E Testing & Bug Fixes ✅
+- [x] AI icon: sparkles SVG (replaced scary robot)
+- [x] Map persistence: v-show outside transition (no DOM destruction on tab switch)
+- [x] Google Directions API: real road routes (fallback to straight lines)
+- [x] Input bar: flat single-layer design (removed inner border)
+- [x] Browse cards: clickable expand with full details (Google/XHS/IG/reservation/navigate)
+- [x] All emoji → SVG icons (eye, eyeOff, lightbulb, clock, globe, etc.)
+- [x] Fake link removal: no fabricated post URLs, only real search buttons (小红书搜索/Instagram搜索)
+- [x] Friendly error messages: 429→服务繁忙, 401→Key无效, network errors in Chinese
+- [x] Retry button on error messages
+- [x] Chat memory fix: show all AI messages including tool-call turns (_skip only for API)
+- [x] System prompt: explicit "no fake URLs" instruction
+- [x] Navigate button: "在 Google Maps 中导航" in browse/map detail cards
+
 ---
 
 ## Deployment
