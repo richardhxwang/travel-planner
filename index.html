@@ -171,25 +171,40 @@ const PROVIDERS = {
 };
 
 const SYS_PROMPT = `你是一个专业的旅行规划助手。你可以通过函数调用来管理用户的行程。请用中文回复。
+网络搜索已开启，请善用搜索来获取真实信息。
 
-当添加活动时，请尽量填充以下所有信息：
-- googleInfo: { rating, reviewCount, hours, phone, website, priceLevel }
-  - website 必须是真实可访问的官网URL。如果不确定，留空不要编造。
-- xiaohongshu: { summary: "小红书上的推荐摘要和实用建议", highlights: ["亮点1","亮点2","亮点3"], posts: [], searchUrl: "https://www.xiaohongshu.com/search_result?keyword=英文地名" }
-  - posts 数组留空（不要编造帖子链接），只提供 searchUrl 让用户自己搜索
-- instagram: { summary: "Instagram上的热门内容描述", hashtags: ["标签1","标签2"], posts: [], searchUrl: "https://www.instagram.com/explore/tags/英文地名/" }
-  - posts 数组留空（不要编造帖子链接），只提供 searchUrl
-- reservation: { required: true/false, urgency: "预订紧迫度说明", links: [{platform:"平台名",url:"真实预订URL"}], tip: "实用预订建议" }
-  - links 中的 url 必须是真实可访问的预订网址（如官网、TripAdvisor、Klook等）。不确定就不要加。
-- location: { lat, lng } — 请提供准确的GPS坐标（到小数点后4位）
-- address: 完整地址（英文）
+## 添加活动时的要求
 
-重要：不要编造任何URL！只提供你确信真实存在的链接。宁可留空也不要给假链接。
+在添加每个活动前，请先通过网络搜索获取该地点的真实信息，然后填充以下字段：
+
+### googleInfo
+{ rating, reviewCount, hours, phone, website, priceLevel }
+- website: 必须是你通过搜索确认存在的真实官网。
+
+### xiaohongshu
+{ summary: "基于搜索结果的小红书推荐摘要", highlights: ["亮点1","亮点2","亮点3"], posts: [{title:"真实帖子标题", url:"真实小红书帖子URL"}], searchUrl: "" }
+- 通过搜索"小红书 地名"找到真实的帖子链接（格式如 https://www.xiaohongshu.com/explore/... 或 https://www.xiaohongshu.com/discovery/item/...）
+- 只填入你在搜索结果中实际看到的URL，找不到就 posts 留空
+
+### instagram
+{ summary: "基于搜索结果的Instagram热门内容", hashtags: ["标签1","标签2"], posts: [{url:"真实IG帖子URL", description:"描述"}], searchUrl: "" }
+- 通过搜索"instagram 地名"找到真实帖子（格式如 https://www.instagram.com/p/... 或 https://www.instagram.com/reel/...）
+- 只填入你在搜索结果中实际看到的URL，找不到就 posts 留空
+
+### reservation
+{ required: true/false, urgency: "预订紧迫度", links: [{platform:"平台名", url:"真实预订URL"}], tip: "预订建议" }
+- 通过搜索找到真实的预订页面（官网预订页、Klook、GetYourGuide、TripAdvisor等）
+- 餐厅：搜索是否有在线菜单PDF链接，如有加入 links: [{platform:"菜单", url:"菜单PDF链接"}]
+
+### 其他
+- location: { lat, lng } — GPS坐标精确到小数点后4位
+- address: 完整英文地址
+
+## 核心原则
+绝对不要编造URL。每个链接都必须来自你的搜索结果。找不到就留空。
 
 每次修改前先调用 save_version 保存快照（除非是 get 类操作）。
-用简洁友好的语气回复，回复后用一句话总结你做了什么。
-
-当前行程数据会通过 get_itinerary 提供给你。`;
+用简洁友好的语气回复，回复后用一句话总结你做了什么。`;
 
 const AI_TOOLS = [
   {type:'function',function:{name:'get_itinerary',description:'获取完整行程数据',parameters:{type:'object',properties:{}}}},
@@ -406,7 +421,7 @@ const App = {
     const chatting     = ref(false);
     const provider     = ref(localStorage.getItem('tp_provider') || 'openai');
     const model        = ref(localStorage.getItem('tp_model') || 'gpt-4o-mini');
-    const webSearch    = ref(false);
+    const webSearch    = ref(true); // Default ON: AI needs web search to find real links
     const showProv     = ref(false);
     const showMdl      = ref(false);
     const chatEndEl    = ref(null);
@@ -759,9 +774,13 @@ const App = {
       add_activity: ({ dayId, time, endTime, type, name, address, notes, placeId, location, googleInfo, xiaohongshu, instagram, reservation }) => {
         const day = trip.days.find(d => d.id === dayId);
         if (!day) return { error:'Day not found' };
-        // Sanitize: strip AI-fabricated post links, keep only search URLs
-        if (xiaohongshu) { xiaohongshu.posts = []; }
-        if (instagram) { instagram.posts = []; }
+        // Sanitize: keep only posts with plausible real URLs (16+ char hash paths)
+        if (xiaohongshu?.posts) {
+          xiaohongshu.posts = xiaohongshu.posts.filter(p => p.url && (p.url.includes('/discovery/item/') || p.url.includes('/explore/') && p.url.length < 80));
+        }
+        if (instagram?.posts) {
+          instagram.posts = instagram.posts.filter(p => p.url && p.url.includes('instagram.com/') && (p.url.includes('/p/') || p.url.includes('/reel/')));
+        }
         // Sanitize reservation links: only keep URLs with known real domains
         if (reservation?.links) {
           reservation.links = reservation.links.filter(l => l.url && /\.(com|co\.id|org|net|io)\/?/.test(l.url));
@@ -786,8 +805,12 @@ const App = {
         const found = findActivity(trip, activityId);
         if (!found) return { error:'Activity not found' };
         // Sanitize fabricated links
-        if (fields.xiaohongshu) { fields.xiaohongshu.posts = []; }
-        if (fields.instagram) { fields.instagram.posts = []; }
+        if (fields.xiaohongshu?.posts) {
+          fields.xiaohongshu.posts = fields.xiaohongshu.posts.filter(p => p.url && (p.url.includes('/discovery/item/') || p.url.includes('/explore/') && p.url.length < 80));
+        }
+        if (fields.instagram?.posts) {
+          fields.instagram.posts = fields.instagram.posts.filter(p => p.url && p.url.includes('instagram.com/') && (p.url.includes('/p/') || p.url.includes('/reel/')));
+        }
         if (fields.reservation?.links) {
           fields.reservation.links = fields.reservation.links.filter(l => l.url && /\.(com|co\.id|org|net|io)\/?/.test(l.url));
         }
@@ -1816,9 +1839,9 @@ const App = {
                       <div v-if="act.xiaohongshu.highlights?.length" class="flex flex-wrap gap-1.5">
                         <span v-for="h in act.xiaohongshu.highlights" :key="h" :class="['px-2 py-0.5 rounded-full text-[11px]', isDark ? 'bg-rose-900/30 text-rose-300' : 'bg-rose-50 text-rose-600']">{{ h }}</span>
                       </div>
-                      <a v-if="act.xiaohongshu" :href="'https://www.google.com/search?q=小红书+' + encodeURIComponent(act.name)" target="_blank"
+                      <a v-if="act.xiaohongshu" :href="act.xiaohongshu.posts?.length ? act.xiaohongshu.posts[0].url : 'https://www.xiaohongshu.com/search_result?keyword=' + encodeURIComponent(act.name)" target="_blank"
                         :class="['flex items-center justify-center gap-1.5 mt-1 py-2 rounded-lg text-[12px] font-medium', isDark ? 'bg-rose-900/20 text-rose-400' : 'bg-rose-50 text-rose-500']">
-                        在小红书搜索「{{ act.name }}」→
+                        {{ act.xiaohongshu.posts?.length ? '查看小红书推荐' : '在小红书搜索「' + act.name + '」' }} →
                       </a>
                     </div>
 
@@ -1829,9 +1852,9 @@ const App = {
                       <div v-if="act.instagram.hashtags?.length" class="flex flex-wrap gap-1.5">
                         <span v-for="tag in act.instagram.hashtags" :key="tag" :class="['px-2 py-0.5 rounded-full text-[11px]', isDark ? 'bg-purple-900/30 text-purple-300' : 'bg-purple-50 text-purple-600']">#{{ tag }}</span>
                       </div>
-                      <a v-if="act.instagram" :href="'https://www.google.com/search?q=instagram+' + encodeURIComponent(act.name)" target="_blank"
+                      <a v-if="act.instagram" :href="act.instagram.posts?.length ? act.instagram.posts[0].url : 'https://www.instagram.com/explore/tags/' + encodeURIComponent(act.name.replace(/\s+/g,'')) + '/'" target="_blank"
                         :class="['flex items-center justify-center gap-1.5 mt-1 py-2 rounded-lg text-[12px] font-medium', isDark ? 'bg-purple-900/20 text-purple-400' : 'bg-purple-50 text-purple-500']">
-                        在 Instagram 搜索 →
+                        {{ act.instagram.posts?.length ? '查看 Instagram 帖子' : '在 Instagram 搜索' }} →
                       </a>
                     </div>
 
@@ -1962,7 +1985,7 @@ const App = {
                   <div v-if="act.xiaohongshu.highlights?.length" class="flex flex-wrap gap-1.5">
                     <span v-for="h in act.xiaohongshu.highlights" :key="h" :class="['px-2 py-0.5 rounded-full text-[11px]', isDark ? 'bg-rose-900/30 text-rose-300' : 'bg-rose-50 text-rose-600']">{{ h }}</span>
                   </div>
-                  <a v-if="act.xiaohongshu" :href="'https://www.google.com/search?q=小红书+' + encodeURIComponent(act.name)" target="_blank"
+                  <a v-if="act.xiaohongshu" :href="act.xiaohongshu.posts?.length ? act.xiaohongshu.posts[0].url : 'https://www.xiaohongshu.com/search_result?keyword=' + encodeURIComponent(act.name)" target="_blank"
                     :class="['flex items-center justify-center gap-1.5 mt-1 py-2 rounded-lg text-[12px] font-medium', isDark ? 'bg-rose-900/20 text-rose-400' : 'bg-rose-50 text-rose-500']">
                     在小红书搜索「{{ act.name }}」→
                   </a>
@@ -1974,9 +1997,9 @@ const App = {
                   <div v-if="act.instagram.hashtags?.length" class="flex flex-wrap gap-1.5">
                     <span v-for="tag in act.instagram.hashtags" :key="tag" :class="['px-2 py-0.5 rounded-full text-[11px]', isDark ? 'bg-purple-900/30 text-purple-300' : 'bg-purple-50 text-purple-600']">#{{ tag }}</span>
                   </div>
-                  <a v-if="act.instagram" :href="'https://www.google.com/search?q=instagram+' + encodeURIComponent(act.name)" target="_blank"
+                  <a v-if="act.instagram" :href="act.instagram.posts?.length ? act.instagram.posts[0].url : 'https://www.instagram.com/explore/tags/' + encodeURIComponent(act.name.replace(/\s+/g,'')) + '/'" target="_blank"
                     :class="['flex items-center justify-center gap-1.5 mt-1 py-2 rounded-lg text-[12px] font-medium', isDark ? 'bg-purple-900/20 text-purple-400' : 'bg-purple-50 text-purple-500']">
-                    在 Instagram 搜索 →
+                    {{ act.instagram?.posts?.length ? '查看 Instagram 帖子' : '在 Instagram 搜索' }} →
                   </a>
                 </div>
                 <!-- Reservation -->
@@ -2446,9 +2469,9 @@ const App = {
           <div v-if="mapDetailAct.xiaohongshu.highlights?.length" class="flex flex-wrap gap-1.5">
             <span v-for="h in mapDetailAct.xiaohongshu.highlights" :key="h" :class="['px-2 py-0.5 rounded-full text-[11px]', isDark ? 'bg-rose-900/30 text-rose-300' : 'bg-rose-50 text-rose-600']">{{ h }}</span>
           </div>
-          <a v-if="mapDetailAct.xiaohongshu" :href="'https://www.google.com/search?q=小红书+' + encodeURIComponent(mapDetailAct.name)" target="_blank"
+          <a v-if="mapDetailAct.xiaohongshu" :href="mapDetailAct.xiaohongshu.posts?.length ? mapDetailAct.xiaohongshu.posts[0].url : 'https://www.xiaohongshu.com/search_result?keyword=' + encodeURIComponent(mapDetailAct.name)" target="_blank"
             :class="['flex items-center justify-center gap-1.5 mt-1 py-2 rounded-lg text-[12px] font-medium', isDark ? 'bg-rose-900/20 text-rose-400' : 'bg-rose-50 text-rose-500']">
-            在小红书搜索「{{ mapDetailAct.name }}」→
+            {{ mapDetailAct.xiaohongshu.posts?.length ? '查看小红书推荐' : '在小红书搜索「' + mapDetailAct.name + '」' }} →
           </a>
         </div>
 
@@ -2459,9 +2482,9 @@ const App = {
           <div v-if="mapDetailAct.instagram.hashtags?.length" class="flex flex-wrap gap-1.5">
             <span v-for="tag in mapDetailAct.instagram.hashtags" :key="tag" :class="['px-2 py-0.5 rounded-full text-[11px]', isDark ? 'bg-purple-900/30 text-purple-300' : 'bg-purple-50 text-purple-600']">#{{ tag }}</span>
           </div>
-          <a v-if="mapDetailAct.instagram" :href="'https://www.google.com/search?q=site:instagram.com+' + encodeURIComponent(mapDetailAct.name)" target="_blank"
+          <a v-if="mapDetailAct.instagram" :href="mapDetailAct.instagram.posts?.length ? mapDetailAct.instagram.posts[0].url : 'https://www.instagram.com/explore/tags/' + encodeURIComponent(mapDetailAct.name.replace(/\\s+/g,'')) + '/'" target="_blank"
             :class="['flex items-center justify-center gap-1.5 mt-1 py-2 rounded-lg text-[12px] font-medium', isDark ? 'bg-purple-900/20 text-purple-400' : 'bg-purple-50 text-purple-500']">
-            在 Instagram 搜索 →
+            {{ mapDetailAct.instagram?.posts?.length ? '查看 Instagram 帖子' : '在 Instagram 搜索' }} →
           </a>
         </div>
 
