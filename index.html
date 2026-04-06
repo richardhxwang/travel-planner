@@ -214,7 +214,7 @@ const AI_TOOLS = [
    SVG ICONS (SF Symbols–style, stroke 1.5px, round caps)
 ===================================================== */
 const SVG = {
-  ai: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a4 4 0 0 1 4 4v1a3 3 0 0 1 3 3v1a3 3 0 0 1-1.1 2.3A4 4 0 0 1 14 18H10a4 4 0 0 1-3.9-4.7A3 3 0 0 1 5 11v-1a3 3 0 0 1 3-3V6a4 4 0 0 1 4-4z"/><circle cx="9" cy="13" r="1"/><circle cx="15" cy="13" r="1"/></svg>',
+  ai: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.5 4.5L18 9l-4.5 1.5L12 15l-1.5-4.5L6 9l4.5-1.5L12 3z"/><path d="M19 14l.75 2.25L22 17l-2.25.75L19 20l-.75-2.25L16 17l2.25-.75L19 14z"/><path d="M5 17l.5 1.5L7 19l-1.5.5L5 21l-.5-1.5L3 19l1.5-.5L5 17z"/></svg>',
   timeline: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/><path d="M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01"/></svg>',
   map: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1 6v16l7-4 8 4 7-4V2l-7 4-8-4-7 4z"/><path d="M8 2v16M16 6v16"/></svg>',
   browse: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>',
@@ -1226,7 +1226,7 @@ const App = {
         if (userLoc.value) showUserLocationMarker();
       }
       mapMarkers.forEach(m => m.setMap(null)); mapMarkers = [];
-      mapPolylines.forEach(p => p.setMap(null)); mapPolylines = [];
+      mapPolylines.forEach(p => { if (p.setMap) p.setMap(null); if (p.setDirections) p.setDirections({ routes: [] }); }); mapPolylines = [];
 
       const day = selDay.value;
       if (!day) {
@@ -1254,11 +1254,34 @@ const App = {
         });
         mapMarkers.push(mk);
       });
-      for (let i = 1; i < acts.length; i++) {
-        mapPolylines.push(new window.google.maps.Polyline({
-          path:[acts[i-1].location, acts[i].location],
-          geodesic:true, strokeColor:'#6366F1', strokeOpacity:0.7, strokeWeight:2.5, map:mapInst
-        }));
+      // Draw route using Directions API (fallback to straight lines)
+      if (acts.length >= 2) {
+        const ds = new window.google.maps.DirectionsService();
+        const waypoints = acts.slice(1, -1).map(a => ({ location: a.location, stopover: true }));
+        ds.route({
+          origin: acts[0].location,
+          destination: acts[acts.length - 1].location,
+          waypoints,
+          travelMode: window.google.maps.TravelMode.DRIVING
+        }, (result, status) => {
+          if (status === 'OK') {
+            const dr = new window.google.maps.DirectionsRenderer({
+              map: mapInst,
+              directions: result,
+              suppressMarkers: true,
+              polylineOptions: { strokeColor: '#6366F1', strokeOpacity: 0.8, strokeWeight: 4 }
+            });
+            mapPolylines.push(dr);
+          } else {
+            // Fallback: straight lines
+            for (let i = 1; i < acts.length; i++) {
+              mapPolylines.push(new window.google.maps.Polyline({
+                path:[acts[i-1].location, acts[i].location],
+                geodesic:true, strokeColor:'#6366F1', strokeOpacity:0.7, strokeWeight:2.5, map:mapInst
+              }));
+            }
+          }
+        });
       }
       if (acts.length) {
         const b = new window.google.maps.LatLngBounds();
@@ -1800,53 +1823,6 @@ const App = {
         </div>
       </div>
 
-      <!-- ══ MAP TAB ══ -->
-      <div v-else-if="activeTab === 'map'" key="map" class="absolute inset-0 flex flex-col">
-
-        <!-- Header with day chips -->
-        <div :class="['border-b safe-top px-4 pb-3 flex-shrink-0', isDark ? 'bg-[#000] border-gray-800' : 'bg-white border-gray-100']">
-          <div class="flex items-center justify-between mb-2.5">
-            <h1 class="text-[15px] font-semibold flex items-center gap-1.5"><span class="w-4.5 h-4.5 text-[#10a37f]" v-html="SVG.map"></span> 地图视图</h1>
-            <span v-if="selDay" :class="['text-[12px]', isDark ? 'text-gray-400' : 'text-gray-500']">
-              {{ selDay.activities.filter(a => a.location).length }} 个地点
-            </span>
-          </div>
-          <!-- Day selector chips -->
-          <div v-if="trip.days.length" class="scroll-x flex gap-2 pb-0.5">
-            <button v-for="day in trip.days" :key="day.id" @click="selDayId = day.id"
-              :class="['flex-shrink-0 px-3 py-1.5 rounded-full text-[12px] font-medium press-sm transition',
-                selDayId === day.id
-                  ? 'bg-[#10a37f] text-white'
-                  : isDark ? 'bg-[#1a1a1a] text-gray-300' : 'bg-[#F7F6F3] text-[#37352F]']">
-              {{ formatDateShort(day.date) }}
-            </button>
-          </div>
-        </div>
-
-        <div class="flex-1 relative overflow-hidden">
-          <!-- No key placeholder -->
-          <div v-if="mapErr && !mapReady" class="flex flex-col items-center justify-center h-full text-center px-8 gap-3">
-            <div class="text-5xl">🗺️</div>
-            <p :class="['text-[13px] leading-relaxed max-w-[240px]', isDark ? 'text-gray-400' : 'text-gray-500']">{{ mapErr }}</p>
-            <button @click="activeTab = 'more'" class="text-[#10a37f] text-[13px] font-medium press-sm">前往设置 →</button>
-          </div>
-          <!-- Loading -->
-          <div v-else-if="!mapReady && !mapErr" class="flex flex-col items-center justify-center h-full gap-3">
-            <svg class="spinner w-8 h-8 text-[#10a37f]" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/></svg>
-            <p :class="['text-[13px]', isDark ? 'text-gray-400' : 'text-gray-500']">地图加载中…</p>
-          </div>
-          <!-- Map canvas - always rendered to allow Google Maps to mount -->
-          <div id="map-canvas" class="absolute inset-0" :class="{ 'opacity-0 pointer-events-none': !mapReady }"></div>
-          <!-- No activities hint overlay -->
-          <div v-if="mapReady && selDay && !selDay.activities.filter(a => a.location).length"
-            class="absolute bottom-4 left-4 right-4 pointer-events-none">
-            <div :class="['rounded-2xl px-4 py-3 text-center text-[12px]', isDark ? 'bg-[#1a1a1a]/90 text-gray-400' : 'bg-white/90 text-gray-500']">
-              当天活动暂无坐标信息，让 AI 添加地点后可显示路线
-            </div>
-          </div>
-        </div>
-      </div>
-
       <!-- ══ BROWSE TAB ══ -->
       <div v-else-if="activeTab === 'browse'" key="browse" class="absolute inset-0 flex flex-col">
 
@@ -2085,6 +2061,45 @@ const App = {
       </div>
 
     </transition>
+
+    <!-- ══ MAP TAB (outside transition to persist Google Maps instance) ══ -->
+    <div v-show="activeTab === 'map'" class="absolute inset-0 flex flex-col">
+      <div :class="['border-b safe-top px-4 pb-3 flex-shrink-0', isDark ? 'bg-[#000] border-gray-800' : 'bg-white border-gray-100']">
+        <div class="flex items-center justify-between mb-2.5">
+          <h1 class="text-[15px] font-semibold flex items-center gap-1.5"><span class="w-4.5 h-4.5 text-[#10a37f]" v-html="SVG.map"></span> 地图视图</h1>
+          <span v-if="selDay" :class="['text-[12px]', isDark ? 'text-gray-400' : 'text-gray-500']">
+            {{ selDay.activities.filter(a => a.location).length }} 个地点
+          </span>
+        </div>
+        <div v-if="trip.days.length" class="scroll-x flex gap-2 pb-0.5">
+          <button v-for="day in trip.days" :key="day.id" @click="selDayId = day.id"
+            :class="['flex-shrink-0 px-3 py-1.5 rounded-full text-[12px] font-medium press-sm transition',
+              selDayId === day.id
+                ? 'bg-[#10a37f] text-white'
+                : isDark ? 'bg-[#1a1a1a] text-gray-300' : 'bg-[#F7F6F3] text-[#37352F]']">
+            {{ formatDateShort(day.date) }}
+          </button>
+        </div>
+      </div>
+      <div class="flex-1 relative overflow-hidden">
+        <div v-if="mapErr && !mapReady" class="flex flex-col items-center justify-center h-full text-center px-8 gap-3">
+          <span class="w-12 h-12 text-gray-300" v-html="SVG.map"></span>
+          <p :class="['text-[13px] leading-relaxed max-w-[240px]', isDark ? 'text-gray-400' : 'text-gray-500']">{{ mapErr }}</p>
+          <button @click="activeTab = 'more'" class="text-[#10a37f] text-[13px] font-medium press-sm">前往设置 →</button>
+        </div>
+        <div v-else-if="!mapReady && !mapErr" class="flex flex-col items-center justify-center h-full gap-3">
+          <svg class="spinner w-8 h-8 text-[#10a37f]" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/></svg>
+          <p :class="['text-[13px]', isDark ? 'text-gray-400' : 'text-gray-500']">地图加载中…</p>
+        </div>
+        <div id="map-canvas" class="absolute inset-0" :class="{ 'opacity-0 pointer-events-none': !mapReady }"></div>
+        <div v-if="mapReady && selDay && !selDay.activities.filter(a => a.location).length"
+          class="absolute bottom-4 left-4 right-4 pointer-events-none">
+          <div :class="['rounded-2xl px-4 py-3 text-center text-[12px]', isDark ? 'bg-[#1a1a1a]/90 text-gray-400' : 'bg-white/90 text-gray-500']">
+            当天活动暂无坐标信息，让 AI 添加地点后可显示路线
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 
   <!-- ── Bottom Tab Bar (FurNote-style) ── -->
