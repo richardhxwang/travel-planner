@@ -1372,7 +1372,12 @@ const App = {
           await TOOLS.save_version({ label:'导入前备份' });
           data.id = crypto.randomUUID();
           Object.assign(trip, data);
+          // Clear per-trip state so old messages/versions don't leak into the new trip
+          messages.value = [];
+          versions.value = [];
           await saveTrip();
+          await saveMessages();
+          await saveVersions();
           if (trip.days.length) selDayId.value = trip.days[0].id;
           toast('行程已导入', 'success');
         } catch(err) { toast('导入失败: ' + err.message, 'error'); }
