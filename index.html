@@ -200,10 +200,17 @@ const SYS_PROMPT = `你是一个专业的旅行规划助手。你可以通过函
 - location: { lat, lng } — GPS坐标精确到小数点后4位
 - address: 完整英文地址
 
+## 工作流程
+添加活动时，请按此顺序操作：
+1. 先调用 search_place 搜索地点 → 它会返回真实的 Google Places 数据（网站、电话、评分、地址、坐标）
+2. 用 search_place 返回的真实数据填入 add_activity 的 googleInfo/location/address 字段
+3. xiaohongshu 和 instagram 字段：只填 summary/highlights/hashtags 文字描述，posts 留空数组 []（代码会自动生成搜索链接）
+4. reservation: 用 search_place 返回的官网 URL 构造预订链接
+
 ## 核心原则
-1. 绝对不要编造URL。每个链接都必须来自你的网络搜索结果。找不到就留空。
-2. 不要使用 search_place 工具来搜索信息——直接使用你自己的网络搜索能力获取真实信息，然后调用 add_activity 填入数据。
-3. 高效执行：创建行程(create_trip) → 添加天(add_day) → 添加活动(add_activity) 一气呵成，不要反复搜索。
+1. 绝对不要编造URL。googleInfo.website 和 reservation.links 的 URL 必须来自 search_place 返回的真实数据。
+2. 高效执行：search_place → create_trip → add_day → add_activity，每个工具只调用一次。
+3. xiaohongshu.posts 和 instagram.posts 永远传空数组 []。
 
 每次修改前先调用 save_version 保存快照（除非是 get 类操作）。
 用简洁友好的语气回复，回复后用一句话总结你做了什么。`;
@@ -909,10 +916,45 @@ const App = {
 
       get_versions: () => versions.value.map(v => ({ id:v.id, label:v.label, timestamp:v.timestamp, days:v.snapshot.days.length })),
 
-      search_place: ({ query, location }) => ({
-        success:true, query, location: location || trip.destination || '',
-        note:'Using AI knowledge base. Configure Google Maps API for live data.',
-        hint:`请根据"${query}"的知识提供详细地点信息，然后使用add_activity添加到行程`
+      search_place: ({ query, location }) => new Promise((resolve) => {
+        if (!window.google?.maps?.places || !mapInst) {
+          resolve({ success:false, error:'Google Maps 未加载，请在设置中配置 API Key 并打开地图页' });
+          return;
+        }
+        const svc = new window.google.maps.places.PlacesService(mapInst);
+        const req = { query: query + (location ? ' ' + location : ''), fields:['name','place_id','formatted_address','geometry','rating','user_ratings_total','opening_hours','business_status'] };
+        svc.textSearch(req, (results, status) => {
+          if (status !== 'OK' || !results?.length) {
+            resolve({ success:false, error:`Places API: ${status}`, query });
+            return;
+          }
+          const p = results[0];
+          // Get full details including website, phone
+          svc.getDetails({
+            placeId: p.place_id,
+            fields:['name','formatted_address','geometry','rating','user_ratings_total','formatted_phone_number','website','opening_hours','price_level','url','place_id']
+          }, (det, dStatus) => {
+            if (dStatus !== 'OK' || !det) {
+              resolve({ success:true, query, name:p.name, address:p.formatted_address,
+                location:{ lat:p.geometry.location.lat(), lng:p.geometry.location.lng() },
+                rating:p.rating, reviewCount:p.user_ratings_total,
+                hours:p.opening_hours?.weekday_text?.join('; ') || null,
+                placeId:p.place_id, googleMapsUrl:`https://www.google.com/maps/place/?q=place_id:${p.place_id}` });
+              return;
+            }
+            resolve({
+              success:true, query, name:det.name, placeId:det.place_id,
+              address:det.formatted_address,
+              location:{ lat:det.geometry.location.lat(), lng:det.geometry.location.lng() },
+              rating:det.rating, reviewCount:det.user_ratings_total,
+              phone:det.formatted_phone_number || null,
+              website:det.website || null,
+              hours:det.opening_hours?.weekday_text?.join('; ') || null,
+              priceLevel:det.price_level ?? null,
+              googleMapsUrl:det.url || `https://www.google.com/maps/place/?q=place_id:${det.place_id}`
+            });
+          });
+        });
       })
     };
 
