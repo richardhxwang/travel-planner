@@ -666,6 +666,7 @@ const App = {
       const toSave = messages.value.filter(m => !m.isStreaming).map(m => ({
         role: m.role, content: m.content || '', timestamp: m.timestamp,
         toolCalls: m.toolCalls || [], _skip: m._skip || false,
+        _error: m._error || false,
         _lastAssistant: m._lastAssistant, _toolResultMessages: m._toolResultMessages
       }));
       const msgKey = trip.id;
@@ -1010,7 +1011,13 @@ const App = {
         await doConversation(aMsg, 0);
       } catch(e) {
         if (e.name !== 'AbortError') {
-          aMsg.content += (aMsg.content ? '\n\n' : '') + '❌ 错误: ' + e.message;
+          let friendly = e.message;
+          if (e.message.includes('429')) friendly = '服务繁忙，请稍后重试';
+          else if (e.message.includes('401') || e.message.includes('403')) friendly = 'API Key 无效或已过期，请在设置中检查';
+          else if (e.message.includes('500') || e.message.includes('502') || e.message.includes('503')) friendly = 'AI 服务暂时不可用，请稍后重试';
+          else if (e.message.includes('Failed to fetch') || e.message.includes('NetworkError')) friendly = '网络连接失败，请检查网络';
+          aMsg.content += (aMsg.content ? '\n\n' : '') + '出错了：' + friendly;
+          aMsg._error = true;
         } else {
           aMsg.content += aMsg.content ? ' [已停止]' : '[已停止]';
         }
@@ -1586,8 +1593,8 @@ const App = {
               <div :class="['max-w-[82%] px-4 py-2.5 rounded-[20px] rounded-br-md text-[14px] leading-relaxed whitespace-pre-wrap', isDark ? 'bg-[#10a37f] text-white' : 'bg-[#10a37f] text-white']">{{ msg.content }}</div>
             </div>
 
-            <!-- Assistant message -->
-            <div v-else-if="msg.role === 'assistant' && !msg._skip" class="space-y-2">
+            <!-- Assistant message (show all, _skip only affects API message construction) -->
+            <div v-else-if="msg.role === 'assistant' && msg.content" class="space-y-2">
               <!-- Tool call chips -->
               <div v-if="msg.toolCalls && msg.toolCalls.length" class="flex flex-wrap gap-1.5">
                 <div v-for="tc in msg.toolCalls" :key="tc.id"
@@ -1605,6 +1612,12 @@ const App = {
                   <span v-for="i in 3" :key="i" :class="['pdot w-2 h-2 rounded-full', isDark ? 'bg-gray-500' : 'bg-gray-400']"></span>
                 </div>
               </div>
+              <!-- Retry button for errors -->
+              <button v-if="msg._error && idx > 0 && messages[idx-1]?.role === 'user'"
+                @click="chatInput = messages[idx-1].content; messages.splice(idx-1, 2); sendMessage()"
+                :class="['px-3 py-1.5 rounded-full text-[12px] font-medium press-sm border', isDark ? 'border-gray-700 text-[#10a37f]' : 'border-gray-200 text-[#10a37f]']">
+                重新发送
+              </button>
             </div>
 
           </template>
@@ -1786,10 +1799,10 @@ const App = {
                       <div v-if="act.xiaohongshu.highlights?.length" class="flex flex-wrap gap-1.5">
                         <span v-for="h in act.xiaohongshu.highlights" :key="h" :class="['px-2 py-0.5 rounded-full text-[11px]', isDark ? 'bg-rose-900/30 text-rose-300' : 'bg-rose-50 text-rose-600']">{{ h }}</span>
                       </div>
-                      <div v-if="act.xiaohongshu.posts?.length" class="space-y-1">
-                        <a v-for="p in act.xiaohongshu.posts" :key="p.url || p.title" :href="p.url" target="_blank" class="text-rose-400 underline block truncate">{{ p.title || '查看帖子' }}</a>
-                      </div>
-                      <a v-if="act.xiaohongshu.searchUrl" :href="act.xiaohongshu.searchUrl" target="_blank" class="text-rose-400 text-[11px] block mt-1">搜索更多 →</a>
+                      <a v-if="act.xiaohongshu.searchUrl" :href="act.xiaohongshu.searchUrl" target="_blank"
+                        :class="['flex items-center justify-center gap-1.5 mt-1 py-2 rounded-lg text-[12px] font-medium', isDark ? 'bg-rose-900/20 text-rose-400' : 'bg-rose-50 text-rose-500']">
+                        在小红书搜索「{{ act.name }}」→
+                      </a>
                     </div>
 
                     <!-- Instagram info -->
@@ -1799,10 +1812,10 @@ const App = {
                       <div v-if="act.instagram.hashtags?.length" class="flex flex-wrap gap-1.5">
                         <span v-for="tag in act.instagram.hashtags" :key="tag" :class="['px-2 py-0.5 rounded-full text-[11px]', isDark ? 'bg-purple-900/30 text-purple-300' : 'bg-purple-50 text-purple-600']">#{{ tag }}</span>
                       </div>
-                      <div v-if="act.instagram.posts?.length" class="space-y-1">
-                        <a v-for="p in act.instagram.posts" :key="p.url" :href="p.url" target="_blank" class="text-purple-400 underline block truncate">{{ p.description || '查看帖子' }}</a>
-                      </div>
-                      <a v-if="act.instagram.searchUrl" :href="act.instagram.searchUrl" target="_blank" class="text-purple-400 text-[11px] block mt-1">搜索更多 →</a>
+                      <a v-if="act.instagram.searchUrl" :href="act.instagram.searchUrl" target="_blank"
+                        :class="['flex items-center justify-center gap-1.5 mt-1 py-2 rounded-lg text-[12px] font-medium', isDark ? 'bg-purple-900/20 text-purple-400' : 'bg-purple-50 text-purple-500']">
+                        在 Instagram 搜索 →
+                      </a>
                     </div>
 
                     <!-- Reservation -->
@@ -1932,10 +1945,10 @@ const App = {
                   <div v-if="act.xiaohongshu.highlights?.length" class="flex flex-wrap gap-1.5">
                     <span v-for="h in act.xiaohongshu.highlights" :key="h" :class="['px-2 py-0.5 rounded-full text-[11px]', isDark ? 'bg-rose-900/30 text-rose-300' : 'bg-rose-50 text-rose-600']">{{ h }}</span>
                   </div>
-                  <div v-if="act.xiaohongshu.posts?.length" class="space-y-1">
-                    <a v-for="p in act.xiaohongshu.posts" :key="p.url||p.title" :href="p.url" target="_blank" class="text-rose-400 underline block truncate">{{ p.title || '查看帖子' }}</a>
-                  </div>
-                  <a v-if="act.xiaohongshu.searchUrl" :href="act.xiaohongshu.searchUrl" target="_blank" class="text-rose-400 text-[11px]">搜索更多 →</a>
+                  <a v-if="act.xiaohongshu.searchUrl" :href="act.xiaohongshu.searchUrl" target="_blank"
+                    :class="['flex items-center justify-center gap-1.5 mt-1 py-2 rounded-lg text-[12px] font-medium', isDark ? 'bg-rose-900/20 text-rose-400' : 'bg-rose-50 text-rose-500']">
+                    在小红书搜索「{{ act.name }}」→
+                  </a>
                 </div>
                 <!-- Instagram -->
                 <div v-if="act.instagram" :class="['rounded-xl p-3 text-[12px] space-y-2', isDark ? 'bg-[#111]' : 'bg-[#FDF4FF]']">
@@ -1944,9 +1957,10 @@ const App = {
                   <div v-if="act.instagram.hashtags?.length" class="flex flex-wrap gap-1.5">
                     <span v-for="tag in act.instagram.hashtags" :key="tag" :class="['px-2 py-0.5 rounded-full text-[11px]', isDark ? 'bg-purple-900/30 text-purple-300' : 'bg-purple-50 text-purple-600']">#{{ tag }}</span>
                   </div>
-                  <div v-if="act.instagram.posts?.length" class="space-y-1">
-                    <a v-for="p in act.instagram.posts" :key="p.url" :href="p.url" target="_blank" class="text-purple-400 underline block truncate">{{ p.description || '查看帖子' }}</a>
-                  </div>
+                  <a v-if="act.instagram.searchUrl" :href="act.instagram.searchUrl" target="_blank"
+                    :class="['flex items-center justify-center gap-1.5 mt-1 py-2 rounded-lg text-[12px] font-medium', isDark ? 'bg-purple-900/20 text-purple-400' : 'bg-purple-50 text-purple-500']">
+                    在 Instagram 搜索 →
+                  </a>
                 </div>
                 <!-- Reservation -->
                 <div v-if="act.reservation?.required" :class="['rounded-xl p-3 text-[12px] space-y-1.5', isDark ? 'bg-[#111]' : 'bg-[#FFF7ED]']">
@@ -2415,6 +2429,10 @@ const App = {
           <div v-if="mapDetailAct.xiaohongshu.highlights?.length" class="flex flex-wrap gap-1.5">
             <span v-for="h in mapDetailAct.xiaohongshu.highlights" :key="h" :class="['px-2 py-0.5 rounded-full text-[11px]', isDark ? 'bg-rose-900/30 text-rose-300' : 'bg-rose-50 text-rose-600']">{{ h }}</span>
           </div>
+          <a v-if="mapDetailAct.xiaohongshu.searchUrl" :href="mapDetailAct.xiaohongshu.searchUrl" target="_blank"
+            :class="['flex items-center justify-center gap-1.5 mt-1 py-2 rounded-lg text-[12px] font-medium', isDark ? 'bg-rose-900/20 text-rose-400' : 'bg-rose-50 text-rose-500']">
+            在小红书搜索「{{ mapDetailAct.name }}」→
+          </a>
         </div>
 
         <!-- Instagram -->
@@ -2424,6 +2442,10 @@ const App = {
           <div v-if="mapDetailAct.instagram.hashtags?.length" class="flex flex-wrap gap-1.5">
             <span v-for="tag in mapDetailAct.instagram.hashtags" :key="tag" :class="['px-2 py-0.5 rounded-full text-[11px]', isDark ? 'bg-purple-900/30 text-purple-300' : 'bg-purple-50 text-purple-600']">#{{ tag }}</span>
           </div>
+          <a v-if="mapDetailAct.instagram.searchUrl" :href="mapDetailAct.instagram.searchUrl" target="_blank"
+            :class="['flex items-center justify-center gap-1.5 mt-1 py-2 rounded-lg text-[12px] font-medium', isDark ? 'bg-purple-900/20 text-purple-400' : 'bg-purple-50 text-purple-500']">
+            在 Instagram 搜索 →
+          </a>
         </div>
 
         <!-- Reservation -->
