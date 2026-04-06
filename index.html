@@ -1460,8 +1460,8 @@ const App = {
     <div class="relative">
       <input v-model="lockPw" :type="showLockPw ? 'text' : 'password'" placeholder="主密码" @keyup.enter="doUnlock"
         :class="['w-full px-4 py-3.5 pr-12 rounded-2xl border text-base outline-none transition', isDark ? 'bg-[#1a1a1a] border-gray-600 text-white placeholder-gray-500 focus:border-[#10a37f]' : 'bg-[#F7F6F3] border-gray-200 placeholder-gray-400 focus:border-[#10a37f]']" />
-      <button @click="showLockPw = !showLockPw" class="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 text-lg leading-none">
-        {{ showLockPw ? '🙈' : '<span class="w-4 h-4 inline-block" v-html="SVG.eye"></span>' }}
+      <button @click="showLockPw = !showLockPw" class="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 leading-none">
+        <span class="w-5 h-5 block" v-html="showLockPw ? SVG.eyeOff : SVG.eye"></span>
       </button>
     </div>
     <p v-if="lockErr" class="text-red-500 text-sm text-center">{{ lockErr }}</p>
@@ -1485,8 +1485,8 @@ const App = {
     <div class="relative">
       <input v-model="setupPw" :type="showSetupPw ? 'text' : 'password'" placeholder="设置密码（至少4位）"
         :class="['w-full px-4 py-3.5 pr-12 rounded-2xl border text-base outline-none', isDark ? 'bg-[#1a1a1a] border-gray-600 text-white placeholder-gray-500' : 'bg-[#F7F6F3] border-gray-200 placeholder-gray-400']" />
-      <button @click="showSetupPw = !showSetupPw" class="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 text-lg leading-none">
-        {{ showSetupPw ? '🙈' : '<span class="w-4 h-4 inline-block" v-html="SVG.eye"></span>' }}
+      <button @click="showSetupPw = !showSetupPw" class="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 leading-none">
+        <span class="w-5 h-5 block" v-html="showSetupPw ? SVG.eyeOff : SVG.eye"></span>
       </button>
     </div>
     <input v-model="setupPw2" :type="showSetupPw ? 'text' : 'password'" placeholder="确认密码" @keyup.enter="doSetup"
@@ -1773,10 +1773,10 @@ const App = {
                         <span v-if="act.googleInfo.priceLevel" :class="isDark ? 'text-gray-400' : 'text-gray-500'">{{ '¥'.repeat(act.googleInfo.priceLevel) }}</span>
                       </div>
                       <div v-if="act.googleInfo.hours" :class="['flex items-start gap-1.5', isDark ? 'text-gray-400' : 'text-gray-500']">
-                        <span class="flex-shrink-0">🕐</span><span>{{ act.googleInfo.hours }}</span>
+                        <span class="w-3.5 h-3.5 flex-shrink-0" v-html="SVG.history"></span><span>{{ act.googleInfo.hours }}</span>
                       </div>
-                      <div v-if="act.googleInfo.phone" :class="isDark ? 'text-gray-400' : 'text-gray-600'">📞 {{ act.googleInfo.phone }}</div>
-                      <a v-if="act.googleInfo.website" :href="act.googleInfo.website" target="_blank" class="text-[#10a37f] flex items-center gap-1">🌐 <span class="underline">官网</span></a>
+                      <a v-if="act.googleInfo.phone" :href="'tel:'+act.googleInfo.phone" :class="['flex items-center gap-1.5', isDark ? 'text-gray-400' : 'text-gray-600']"><span class="w-3.5 h-3.5" v-html="SVG.globe"></span>{{ act.googleInfo.phone }}</a>
+                      <a v-if="act.googleInfo.website" :href="act.googleInfo.website" target="_blank" class="text-[#10a37f] flex items-center gap-1.5"><span class="w-3.5 h-3.5" v-html="SVG.globe"></span><span class="underline truncate">{{ act.googleInfo.website }}</span></a>
                     </div>
 
                     <!-- Xiaohongshu info -->
@@ -2037,8 +2037,8 @@ const App = {
                   <input v-model="keys[key]" :type="showKeyVis[key] ? 'text' : 'password'" :placeholder="cfg.name + ' API Key'"
                     :class="['w-full px-3 py-2.5 pr-10 rounded-xl text-[13px] border outline-none transition', isDark ? 'bg-[#1a1a1a] border-gray-700 text-white placeholder-gray-600' : 'bg-[#F7F6F3] border-gray-200 placeholder-gray-400']" />
                   <button @click="showKeyVis[key] = !showKeyVis[key]"
-                    :class="['absolute right-2.5 top-1/2 -translate-y-1/2 text-base leading-none', isDark ? 'text-gray-600' : 'text-gray-300']">
-                    {{ showKeyVis[key] ? '🙈' : '<span class="w-4 h-4 inline-block" v-html="SVG.eye"></span>' }}
+                    :class="['absolute right-2.5 top-1/2 -translate-y-1/2 leading-none', isDark ? 'text-gray-600' : 'text-gray-300']">
+                    <span class="w-4.5 h-4.5 block" v-html="showKeyVis[key] ? SVG.eyeOff : SVG.eye"></span>
                   </button>
                 </div>
               </div>
@@ -2048,8 +2048,8 @@ const App = {
                   <input v-model="keys.maps" :type="showKeyVis.maps ? 'text' : 'password'" placeholder="Google Maps API Key"
                     :class="['w-full px-3 py-2.5 pr-10 rounded-xl text-[13px] border outline-none', isDark ? 'bg-[#1a1a1a] border-gray-700 text-white placeholder-gray-600' : 'bg-[#F7F6F3] border-gray-200 placeholder-gray-400']" />
                   <button @click="showKeyVis.maps = !showKeyVis.maps"
-                    :class="['absolute right-2.5 top-1/2 -translate-y-1/2 text-base leading-none', isDark ? 'text-gray-600' : 'text-gray-300']">
-                    {{ showKeyVis.maps ? '🙈' : '<span class="w-4 h-4 inline-block" v-html="SVG.eye"></span>' }}
+                    :class="['absolute right-2.5 top-1/2 -translate-y-1/2 leading-none', isDark ? 'text-gray-600' : 'text-gray-300']">
+                    <span class="w-4.5 h-4.5 block" v-html="showKeyVis.maps ? SVG.eyeOff : SVG.eye"></span>
                   </button>
                 </div>
               </div>
@@ -2352,7 +2352,7 @@ const App = {
       </div>
       <div class="flex-1 scroll-y px-4 py-3 space-y-2 pb-8">
         <div v-if="!versions.length" class="text-center py-14">
-          <div class="text-3xl mb-3">📋</div>
+          <span class="w-10 h-10 text-gray-300 mb-3" v-html="SVG.history"></span>
           <p :class="['text-[13px]', isDark ? 'text-gray-400' : 'text-gray-500']">暂无历史版本</p>
           <p :class="['text-[12px] mt-1', isDark ? 'text-gray-600' : 'text-gray-400']">每次 AI 修改行程前会自动保存快照</p>
         </div>
