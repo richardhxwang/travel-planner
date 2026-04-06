@@ -297,6 +297,11 @@ Design reference: LumiChat (color system) + FurNote (tab bar)
 - [x] Chat memory fix: show all AI messages including tool-call turns (_skip only for API)
 - [x] System prompt: explicit "no fake URLs" instruction
 - [x] Navigate button: "在 Google Maps 中导航" in browse/map detail cards
+- [x] **Google Places API integration**: search_place tool now calls real Places Text Search + Details API
+- [x] Real data: website, phone, rating, reviews, hours, priceLevel, address, GPS all from Google
+- [x] XHS/IG posts stripped at tool layer (LLMs always fabricate URLs), platform search buttons only
+- [x] Tool call depth limit raised to 15 (web search uses many turns)
+- [x] System prompt rewritten for efficient workflow: search_place → create_trip → add_day → add_activity
 
 ---
 
