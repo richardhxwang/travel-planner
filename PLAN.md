@@ -1,7 +1,8 @@
-# Bali Travel Planner — Implementation Plan
+# Travel Planner — Implementation Plan
 
 ## Overview
 Single-file PWA (`index.html`) for iPhone, mobile-first, Notion-style.
+Generic travel planner — supports any destination, up to 3 concurrent trips.
 Deploy via Netlify Drop (drag & drop). API keys encrypted in LocalStorage.
 
 ---
@@ -276,6 +277,32 @@ Design reference: LumiChat (color system) + FurNote (tab bar)
 - [x] **Map detail sheet**: tap marker → slide-up bottom sheet with full activity details (google/xiaohongshu/instagram/reservation)
 - [x] **Activity detail in expanded cards**: xiaohongshu highlights + posts, instagram hashtags + posts, reservation links (already implemented in Phase 3)
 
+### Phase 8 — Generalization & Multi-trip ✅
+- [x] Remove all Bali-specific hardcoding (titles, prompts, defaults, localStorage keys)
+- [x] Geolocation: user position blue dot, smart map center (trip → user loc → world)
+- [x] Multi-trip: up to 3 concurrent plans, switcher UI in settings, per-trip isolation
+- [x] AI session memory: encrypted chat history per trip, restored on unlock/switch
+- [x] Legacy single-trip data auto-migration
+
+### Phase 9 — E2E Testing & Bug Fixes ✅
+- [x] AI icon: sparkles SVG (replaced scary robot)
+- [x] Map persistence: v-show outside transition (no DOM destruction on tab switch)
+- [x] Google Directions API: real road routes (fallback to straight lines)
+- [x] Input bar: flat single-layer design (removed inner border)
+- [x] Browse cards: clickable expand with full details (Google/XHS/IG/reservation/navigate)
+- [x] All emoji → SVG icons (eye, eyeOff, lightbulb, clock, globe, etc.)
+- [x] Fake link removal: no fabricated post URLs, only real search buttons (小红书搜索/Instagram搜索)
+- [x] Friendly error messages: 429→服务繁忙, 401→Key无效, network errors in Chinese
+- [x] Retry button on error messages
+- [x] Chat memory fix: show all AI messages including tool-call turns (_skip only for API)
+- [x] System prompt: explicit "no fake URLs" instruction
+- [x] Navigate button: "在 Google Maps 中导航" in browse/map detail cards
+- [x] **Google Places API integration**: search_place tool now calls real Places Text Search + Details API
+- [x] Real data: website, phone, rating, reviews, hours, priceLevel, address, GPS all from Google
+- [x] XHS/IG posts stripped at tool layer (LLMs always fabricate URLs), platform search buttons only
+- [x] Tool call depth limit raised to 15 (web search uses many turns)
+- [x] System prompt rewritten for efficient workflow: search_place → create_trip → add_day → add_activity
+
 ---
 
 ## Deployment
@@ -285,4 +312,4 @@ Design reference: LumiChat (color system) + FurNote (tab bar)
 - **Netlify**: Drag `index.html` to Netlify Drop
 
 ## Key File
-`/Users/richard/Project/Bali travel/index.html` — the only file
+`index.html` — the only file
